@@ -1,0 +1,199 @@
+@import url('https://fonts.cdnfonts.com/css/italiana');
+@import url('https://fonts.googleapis.com/css?family=Lato');
+
+.container{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: auto;
+    overflow: hidden;
+    background: #E7E7E7;
+    display: block;
+
+    .top-banner{
+        height: 36px;
+        background: url('../img/top-banner.png'), lightgray -26.595px -241.213px / 105.462% 3555.555% no-repeat;
+    }
+
+    .nav-bar{
+        width: 100%;
+        height: 89px;
+        display: flex;
+        text-align: center;
+        margin-left: 44px;
+        margin-top: 14px;
+        font-style: normal;
+        line-height: normal;
+        text-shadow: 0px 4px 4px rgba(255, 255, 255, 0.25);
+
+        .logo{    
+            
+            font-family: Italiana;
+            color: rgb(114, 17, 17);
+            font-size: 80px;
+            font-weight: 400;
+            flex-shrink: 0;
+        }
+
+        .page-bar{
+            display: flex;
+            padding-left: 23px;
+            margin-top: auto;
+            margin-bottom: auto;
+
+            .cur-page{
+                color: #741D14;
+                font-family: Lato, sans-serif;
+                font-size: 40px;
+            }
+
+            .icon{
+                width: 41.333px;
+                height: 39.956px;
+                padding-left: 5px;
+            }
+        }
+
+        
+ 
+    }
+
+    .content{
+        display: inline-flex;
+        width: 100%;
+
+        .left-bar{
+            width: 222px;
+            height: 472px;
+            border-radius: 10px;
+            background: #E9DFDD;
+            align-items: center;
+            border-color: #e4dbda;
+            border-style:solid;
+            
+
+            & ul{
+                list-style-type: none;
+                & li{
+                    font-size: 24px;
+                    padding-bottom: 20px;
+                    padding-top: 20px;
+
+                    &.profile{
+                        color: #B72347;   
+                        font-weight: 700;
+                        text-decoration-line: underline;
+                    }
+                    &.shop{
+                        color: #000;
+                    }
+                }
+
+            }
+        }
+
+        .vl{
+            
+            width: 1px;
+            margin-left: 25px;
+            margin-right: 25px;
+            background: #000;
+            opacity: 30%;
+        }
+        .option-content{
+            width: 100%;
+            height: 473px;
+            margin: 0px 30px 0px 0px;
+            border-radius: 5px;
+            background: #FFF;
+
+            & hr{
+                margin: 10px;
+                opacity: 50%;
+            }
+
+            .option-name{
+                width: 114px;
+                font-size: 25px;
+                padding-left: 15px;
+                & p{
+                    color: #741D14;
+                    font-family: Lato;
+                    font-size: 25px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: normal;
+                }
+            }
+
+            .profile-img{
+                margin-left: 30px;
+                display: flex;
+                & img{
+                    height: 120px;
+                }
+                & input{
+                    width: 127.435px;
+                    height: 46px;
+                    margin-top:auto;
+                    margin-bottom: auto;
+                    margin-left: 25px;
+                    border: 1px solid #6A6A6A;
+                    border-radius: 10px;
+                    background-color: white;
+                }
+            }
+            & form{
+                margin: auto;
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-around;
+            }
+
+            .user-info{
+                
+                
+                .username , .user-email{
+                    display: flex;
+                    margin-left: 50px;
+                    height: 50px;
+                    
+
+                    & label{
+                        margin: auto;
+                        margin-left: 0px;
+                        margin-right: 0px;
+                        display: inline;
+                        width:100px;
+                        color: #741D14;
+                        font-family: Lato;
+                        font-size: 18px;
+                        font-style: normal;
+                        font-weight: 400;
+                        line-height: normal;
+                        text-align: right;
+                    }
+
+                    
+                }
+
+                & input{
+                    margin-left: 20px;
+                    margin-right: 20px;
+                    border-radius: 5px;
+                }
+
+                & a{
+                    text-decoration: none;
+                    margin: auto;
+                    margin-left: 20px;
+                }
+                
+            }
+        }
+    }
+}
+
