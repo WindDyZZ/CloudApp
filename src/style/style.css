@@ -11,6 +11,7 @@
     overflow: hidden;
     background: #E7E7E7;
     display: block;
+    overflow-y: scroll;
 
     .top-banner{
         height: 36px;
@@ -194,6 +195,12 @@
                 
             }
         }
+    }
+
+    & footer {
+        display: flex;
+        flex-direction: column;
+        height: 250px;
     }
 }
 
