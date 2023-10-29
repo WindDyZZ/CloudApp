@@ -6,12 +6,17 @@
     top: 0;
     left: 0;
     width: 100%;
+    height: auto !important;
     height: 100%;
-    margin: auto;
+    min-height: 100%;
+    /* overflow: auto; */
+    margin: 0 auto;
     overflow: hidden;
     background: #E7E7E7;
     display: block;
     overflow-y: scroll;
+    flex: 1;
+    flex-wrap: wrap;
 
     .top-banner{
         height: 36px;
@@ -33,7 +38,7 @@
             
             font-family: Italiana;
             color: rgb(114, 17, 17);
-            font-size: 80px;
+            font-size: 65px;
             font-weight: 400;
             flex-shrink: 0;
         }
@@ -47,7 +52,7 @@
             .cur-page{
                 color: #741D14;
                 font-family: Lato, sans-serif;
-                font-size: 40px;
+                font-size: 37px;
             }
 
             .icon{
@@ -195,12 +200,86 @@
                 
             }
         }
+
+        /* .his-bar{
+            flex: 1;
+            flex-wrap: wrap;
+            width: 100%;
+            height: 473px;
+            margin: 0px 30px 0px 30px;
+            border-radius: 5px;
+            background: #cd9898;
+        } */
+
+        .his-content{
+            flex: 1;
+            flex-wrap: wrap;
+            width: 100%;
+            height: 473px;
+            margin: 0px 30px 0px 30px;
+            border-radius: 5px;
+            background: #FFF;
+
+            .prodcut-info{
+                flex: 1;
+                flex-wrap: wrap;
+
+                & product-img{
+                    flex: 1;
+                }
+
+                & product-text{
+                    flex: 1;
+                }
+
+            }
+
+
+        }
+
+
+    }
+
+    .his-bar{
+        display: inline-flex;
+        width: 100%;
+        
+        .bar-content{
+            flex: 1;
+            flex-wrap: wrap;
+            width: 100%;
+            height: 20px;
+            margin: 0px 30px 30px 30px;
+            border-radius: 5px;
+            background: #FFF;
+
+            padding: 2rem 2rem;
+        }
+
+        .bar-content a {
+            font-size: 1.6rem;
+            color: rgb(0, 0, 0);
+            padding: 3rem 3.5rem;
+        }
+
+        .bar-content a:hover {
+            color: #741D14;
+        }
+
     }
 
     & footer {
         display: flex;
+        flex: 1;
         flex-direction: column;
+        /* justify-content: flex-start; */
+        /* background-color: black; */
         height: 250px;
+        /* position: absolute;
+        bottom:0;
+        left:0;
+        right:0; */
+        /* height: 100px; */
     }
 }
 
