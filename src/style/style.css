@@ -1,6 +1,7 @@
 @import url('https://fonts.cdnfonts.com/css/italiana');
 @import url('https://fonts.googleapis.com/css?family=Lato');
 
+
 .container{
     position: absolute;
     top: 0;
@@ -12,6 +13,10 @@
     background: #E7E7E7;
     display: block;
     overflow-y: scroll;
+    background-image: url('../img/Wave.png');
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: 100%;
 
     .top-banner{
         height: 36px;
@@ -196,11 +201,48 @@
             }
         }
     }
-
+    
     & footer {
         display: flex;
         flex-direction: column;
         height: 250px;
     }
+    .cart{
+        font-size: 25px;
+        padding-left: 20px;
+        line-height: 50px;
+        
+        .all-item {
+            width: 95%;
+            height: 50px;
+            margin: auto;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: #FFF;
+        }
+        .in-cart {
+            display: flex;
+            flex-direction: row;
+            width: 90%;
+            margin: auto;
+            border-radius: 10px;
+            background: #FFF;
+            .item {
+                display: flex;
+                flex-direction: column;
+            }
+            
+        
+        }
+
+    }
+    
 }
+
+.item-img {
+    padding: 5px;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+ }
 
