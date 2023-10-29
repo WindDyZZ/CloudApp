@@ -1,6 +1,7 @@
 @import url('https://fonts.cdnfonts.com/css/italiana');
 @import url('https://fonts.googleapis.com/css?family=Lato');
 
+
 .container{
     position: absolute;
     top: 0;
@@ -12,6 +13,10 @@
     background: #E7E7E7;
     display: block;
     overflow-y: scroll;
+    background-image: url('../img/Wave.png');
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: 100%;
 
     .top-banner{
         height: 36px;
@@ -196,11 +201,104 @@
             }
         }
     }
-
+    
     & footer {
         display: flex;
         flex-direction: column;
         height: 250px;
     }
+    .cart{
+        font-size: 25px;
+        padding-left: 20px;
+        line-height: 50px;
+        
+        .all-item {
+            width: 95%;
+            height: 50px;
+            margin: auto;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: #FFF;
+        }
+        .in-cart {
+            display: flex;
+            flex-direction: row;
+            width: 90%;
+            margin: auto;
+            border-radius: 10px;
+            background: #FFF;
+            .item {
+                display: flex;
+                flex-direction: column;
+            }
+            
+        
+        }
+
+    }
+    
 }
 
+.item-img {
+    padding: 5px;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+ }
+
+ body {
+    background-image: url(../img/Wave.png);
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    /* z-index: 999; */
+}
+
+.head-province {
+    color: black;
+    font-style: italic;
+}
+
+.row {
+    display: inline-block;
+}
+
+.home-pic {
+    width: 165px;
+    margin: 5px;
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    align-items: center;
+}
+
+.card-price {
+    background-color: antiquewhite;
+    /* opacity: 50%; */
+    border-radius: 10px;
+}
+
+#header_search {
+    padding-left: 10px;
+    background-color: #D9D9D9;
+    vertical-align: middle;
+    border: none;
+    border-radius: 20px;
+    width: 500px;
+    height: 40px;
+}
+
+#img_logo {
+    padding: 10px;
+    height: 100px;
+}
+
+#div_search {
+    display: flex;
+    align-items: center;
+}
+
+#header_nav {
+    display: flex;
+    align-items: center;
+}
