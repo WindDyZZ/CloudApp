@@ -16,15 +16,12 @@
     background: #E7E7E7;
     display: block;
     overflow-y: scroll;
-<<<<<<< HEAD
     flex: 1;
     flex-wrap: wrap;
-=======
     background-image: url('../img/Wave.png');
     background-position: center bottom;
     background-repeat: no-repeat;
     background-size: 100%;
->>>>>>> 8b971d727ecba1e8a51d54e9c991ca840aa700da
 
     .top-banner{
         height: 36px;
