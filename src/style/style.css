@@ -268,13 +268,19 @@
     margin: 5px;
     padding-right: 10px;
     padding-left: 10px;
-    padding-bottom: 10px;
+    padding-bottom: 5px;
     align-items: center;
+    /* position: relative; */
 }
 
 .card-price {
-    background-color: antiquewhite;
-    /* opacity: 50%; */
+    color: #741D14;
+    font-weight: 500;
+    background-color: #D9D9D9;
+    margin-right: 5px;
+    margin-left: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
     border-radius: 10px;
 }
 
@@ -302,3 +308,36 @@
     display: flex;
     align-items: center;
 }
+
+.price{
+    float: right;
+}
+
+.add-btn{
+    position: absolute;
+    /* top: 8px; */
+}
+
+.ctn{
+    position: relative;
+    width: 100%;
+}
+
+.ctn .add-btn {
+    position: absolute;
+    top: 20%;
+    left: 77%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    background-color: #A1776C;
+    color: white;
+    font-size: 16px;
+    padding: 7px 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .ctn .add-btn:hover {
+    background-color: black;
+  }
