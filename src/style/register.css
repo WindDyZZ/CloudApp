@@ -1,0 +1,95 @@
+#main_container{
+    width: 100%;
+    height: 100vh;
+}
+
+#header{
+    width: 100%;
+
+}
+#main_content {
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    
+}
+
+#register-container {
+    width: 50%;
+}
+
+#register-inner-top{
+    padding-left: 30px;
+    display: flex;
+    height: 60px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+#select-profile {
+    margin-left: 20px;
+    height: 30px;
+    border: 0;
+    border-radius: 10px;
+    color: #fff;
+    background-color: #B72347;
+    font-family: Lato, sans-serif;
+    cursor: pointer;
+}
+
+#select-profile:hover {
+    opacity: 0.8;
+}
+
+
+
+#register-middle{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+
+}
+
+#register-bottom{
+    width: 100%;
+
+}
+
+.input-stack{
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.input-stack label{
+    margin-left: 10px;
+    margin-bottom: 5px;
+    color: #741D14;
+    font-family: Lato, sans-serif;
+}
+
+.input-stack input,textarea{
+    border-radius: 10px;
+    border:0;
+    padding:10px;
+    
+}
+
+#create-new-account {
+    margin-top: 20px;
+    border: 0;
+    width: 30%;
+    border-radius: 10px;
+    height: 30px;
+    color: #fff;
+    background-color: #B72347;
+    font-family: Lato, sans-serif;
+    cursor: pointer;
+
+}
+
+#create-new-account:hover {
+    opacity: 0.8;
+}
