@@ -332,7 +332,7 @@
             margin: 0px 30px 30px 30px;
             border-radius: 20px;
             background: #ffffff;
-
+            text-align: center;
             padding: 2rem 2rem;
         }
 
@@ -469,6 +469,7 @@
 .quantity {
     padding-top: 20px;
     margin-right: 60px;
+
 
   }
   .quantity input {
