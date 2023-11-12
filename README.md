@@ -6,3 +6,6 @@ This is a final project folder of E-Commerce platform for DES424
 
 * [Required Software](#required-software)
 
+
+## Command
+* Runserver: npm start
