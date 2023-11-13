@@ -17,7 +17,20 @@ router.get("/index",(req,res)=>{
 })
 
 router.get("/home",(req,res)=>{
+
     res.render('home');
+})
+
+router.get("/profile",(req,res)=>{
+    res.render('profile');
+})
+
+router.get("/myshop",(req,res)=>{
+    res.render('myshop');
+})
+
+router.get("/add_product",(req,res)=>{
+    res.render('add_product');
 })
 
 module.exports = router

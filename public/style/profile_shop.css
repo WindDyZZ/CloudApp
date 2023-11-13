@@ -161,9 +161,9 @@
                     transition: background 0.3s; 
                 }
 
-                & button:hover{
+                /* & button:hover{
                     background: linear-gradient(to bottom, #F00, #FF4500);
-                }
+                } */
 
                 & button svg{
                     width: 23.31px;
