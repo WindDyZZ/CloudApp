@@ -17,7 +17,22 @@ router.get("/index",(req,res)=>{
 })
 
 router.get("/home",(req,res)=>{
-    res.render('home');
+    const num = 10;
+    const pnum = 2;
+    res.render('home.ejs',{num: num, pnum:pnum});
 })
+
+router.get("/cart",(req,res)=>{
+    res.render('cart.ejs')
+})
+
+router.get("/history",(req,res)=>{
+    res.render('history.ejs')
+})
+
+router.get("/profile",(req,res)=>{
+    res.render('profile.ejs')
+})
+
 
 module.exports = router
