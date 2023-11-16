@@ -22,6 +22,7 @@
   "homepage": "https://github.com/WindDyZZ/CloudApp#readme",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.451.0",
+    "@aws-sdk/lib-dynamodb": "^3.451.0",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "nodemon": "^3.0.1"

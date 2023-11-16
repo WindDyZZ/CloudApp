@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style/style.css">
     <link rel="stylesheet" href="./style/register.css">
+    <script src="./js/register.js"></script>
     <title>Register</title>
 </head>
 <body>
@@ -13,84 +14,87 @@
             <div id="header">
                 <div class="top-banner"></div>
                 <div class="nav-bar">
-                    <div class="logo">OTOP</div>
+                    <a href="/" style="text-decoration: none;"><div class="logo">OTOP</div></a>
                     <div class="page-bar">
                         <div class="cur-page"> > Register</div>
                     </div>
                 </div>
             </div>
     
-            <div id="main_content">
-                <div id="register-container">
-                    <div id="register-inner-top">
-
-                        <div class="icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="44" height="43" viewBox="0 0 44 43" fill="none">
-                                <path opacity="0.16" d="M1 36.3548C1 33.7055 2.08869 31.1648 4.02656 29.2915C5.96444 27.4181 8.59276 26.3657 11.3333 26.3657H32C34.7406 26.3657 37.3689 27.4181 39.3068 29.2915C41.2446 31.1648 42.3333 33.7055 42.3333 36.3548C42.3333 37.6795 41.789 38.9498 40.82 39.8865C39.8511 40.8232 38.5369 41.3494 37.1667 41.3494H6.16667C4.79638 41.3494 3.48222 40.8232 2.51328 39.8865C1.54434 38.9498 1 37.6795 1 36.3548Z" fill="black"/>
-                                <path d="M1 36.3548C1 33.7055 2.08869 31.1648 4.02656 29.2915C5.96444 27.4181 8.59276 26.3657 11.3333 26.3657H32C34.7406 26.3657 37.3689 27.4181 39.3068 29.2915C41.2446 31.1648 42.3333 33.7055 42.3333 36.3548C42.3333 37.6795 41.789 38.9498 40.82 39.8865C39.8511 40.8232 38.5369 41.3494 37.1667 41.3494H6.16667C4.79638 41.3494 3.48222 40.8232 2.51328 39.8865C1.54434 38.9498 1 37.6795 1 36.3548Z" fill="#D9D9D9" stroke="black" stroke-width="2" stroke-linejoin="round"/>
-                                <path d="M21.6667 16.3767C25.9469 16.3767 29.4167 13.0225 29.4167 8.88489C29.4167 4.74727 25.9469 1.39307 21.6667 1.39307C17.3865 1.39307 13.9167 4.74727 13.9167 8.88489C13.9167 13.0225 17.3865 16.3767 21.6667 16.3767Z" stroke="black" stroke-width="2"/>
-                            </svg>
+            <form method="post" action="/register">
+                <div id="main_content">
+                    <div id="register-container">
+                        <div id="register-inner-top">
+    
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="44" height="43" viewBox="0 0 44 43" fill="none">
+                                    <path opacity="0.16" d="M1 36.3548C1 33.7055 2.08869 31.1648 4.02656 29.2915C5.96444 27.4181 8.59276 26.3657 11.3333 26.3657H32C34.7406 26.3657 37.3689 27.4181 39.3068 29.2915C41.2446 31.1648 42.3333 33.7055 42.3333 36.3548C42.3333 37.6795 41.789 38.9498 40.82 39.8865C39.8511 40.8232 38.5369 41.3494 37.1667 41.3494H6.16667C4.79638 41.3494 3.48222 40.8232 2.51328 39.8865C1.54434 38.9498 1 37.6795 1 36.3548Z" fill="black"/>
+                                    <path d="M1 36.3548C1 33.7055 2.08869 31.1648 4.02656 29.2915C5.96444 27.4181 8.59276 26.3657 11.3333 26.3657H32C34.7406 26.3657 37.3689 27.4181 39.3068 29.2915C41.2446 31.1648 42.3333 33.7055 42.3333 36.3548C42.3333 37.6795 41.789 38.9498 40.82 39.8865C39.8511 40.8232 38.5369 41.3494 37.1667 41.3494H6.16667C4.79638 41.3494 3.48222 40.8232 2.51328 39.8865C1.54434 38.9498 1 37.6795 1 36.3548Z" fill="#D9D9D9" stroke="black" stroke-width="2" stroke-linejoin="round"/>
+                                    <path d="M21.6667 16.3767C25.9469 16.3767 29.4167 13.0225 29.4167 8.88489C29.4167 4.74727 25.9469 1.39307 21.6667 1.39307C17.3865 1.39307 13.9167 4.74727 13.9167 8.88489C13.9167 13.0225 17.3865 16.3767 21.6667 16.3767Z" stroke="black" stroke-width="2"/>
+                                </svg>
+                            </div>
+    
+                            <label for="profilePictureInput"><Button id="select-profile" onclick="document.getElementById('profilePictureInput').click(); return false;">Select Profile Picture</Button></label>
+                            <input type="file" id="profilePictureInput" style="display: none;" accept="image/*">
+                            
                         </div>
-
-                        <Button id="select-profile">Select Profile Picture</Button>
+    
+                        <div id="register-middle">
+                            <div style="width: 40%;">
+                                <div class="input-stack">
+                                    <label>First Name</label>
+                                    <input type="text" name="register_firstName" id="register_firstName" required>
+                                </div>
+            
+                                <div class="input-stack">
+                                    <label>E-mail Address</label>
+                                    <input type="text" name="register_Email" id="register_Email" required>
+                                </div>
+            
+                                <div class="input-stack">
+                                    <label>Password</label>
+                                    <input type="password" name="register_Password" id="register_Password" required>
+                                </div>
+                            </div>
+            
+                            <div style="width: 40%;">
+                                <div class="input-stack">
+                                    <label>Last Name</label>
+                                    <input type="text" name="register_lastName" id="register_lastName" required>
+                                </div>
+            
+                                <div class="input-stack">
+                                    <label>Username</label>
+                                    <input type="text" name="register_username" id="register_username" required>
+                                </div>
+            
+                                <div class="input-stack">
+                                    <label>Confirm Password</label>
+                                    <input type="password" name="register_conPassword" id="register_conPassword" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="register-bottom">
+                            <div class="input-stack">
+                                <label>Address</label>
+                                <textarea style=" resize: none;" name="register_address" id="register_address" cols="40" rows="4"></textarea>
+                            </div>
+                            
+                        </div>
+                        <div>
+                            <center>
+                                <Button type="submit" id="create-new-account">Create New Account</Button>
+                            </center>
+        
+                        </div>
                         
-                    </div>
-
-                    <div id="register-middle">
-                        <div style="width: 40%;">
-                            <div class="input-stack">
-                                <label>First Name</label>
-                                <input type="text" name="register_firstName"  >
-                            </div>
-
-                            <div class="input-stack">
-                                <label>E-mail Address</label>
-                                <input type="text" name="register_Email" >
-                            </div>
-
-                            <div class="input-stack">
-                                <label>Password</label>
-                                <input type="password" name="register_Password" >
-                            </div>
-
-                        </div>
-                        <div style="width: 40%;">
-                            <div class="input-stack">
-                                <label>Last Name</label>
-                                <input type="text" name="register_lastName"  >
-                            </div>
-
-                            <div class="input-stack">
-                                <label>Username</label>
-                                <input type="text" name="register_username" >
-                            </div>
-
-                            <div class="input-stack">
-                                <label>Confirm Password</label>
-                                <input type="password" name="register_conPassword" >
-                            </div>
-
-                        </div>
-                    </div>
-                    <div id="register-bottom">
-                        <div class="input-stack">
-                            <label>Address</label>
-                            <textarea style=" resize: none;" name="register_address" cols="40" rows="4"></textarea>
-                        </div>
                         
-                    </div>
-                    <div>
-                        <center>
-                            <Button id="create-new-account">Create New Account</Button>
-                        </center>
     
                     </div>
-                    
-                    
-
+                        
                 </div>
-                    
-            </div>
+            </form>
+            
         </div>
    </div>
     
