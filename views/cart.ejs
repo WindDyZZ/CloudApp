@@ -26,17 +26,22 @@
             </div>
         </div>
         <!-- product 1 -->
+        <% 
+            let totalPrice = 0; 
+            for (let i = 0; i < Products.length; i++) { 
+                totalPrice += Products[i].price; 
+        %>
             <div class="in-cart">            
                 <input class="checkbox" type="checkbox" id="items" name="items" value="#">
-                <img class="item-img" src="img/ex-product.png" alt="">
+                <img class="item-img" src="<%= Products[i].image %>" alt="">
                 <div class="item">
-                   <a href="#">Product Name</a>
+                    <a href="#"><%= Products[i].product_name %></a>
                     <select class="custom-select" name="color" id="color">
                         <option value="large">Large</option>
                         <option value="medium">medium</option>
                         <option value="small">small</option>
                     </select>
-                    <p><span>฿300</span></p>
+                    <p><span>฿<%= Products[i].price %></span></p>
                 </div>
                 <div class="quantity">
                     <div class="trash">
@@ -53,38 +58,11 @@
                     </button>
                 </div>
             </div>
+            <% } %>
         <!-- End product 1 -->
-        <!-- product 2 -->
-        <div class="in-cart">            
-            <input class="checkbox" type="checkbox" id="items" name="items" value="#">
-            <img class="item-img" src="img/ex-product.png" alt="">
-            <div class="item">
-               <a href="#">Product Name</a>
-                <select class="custom-select" name="color" id="color">
-                    <option value="large">Large</option>
-                    <option value="medium">medium</option>
-                    <option value="small">small</option>
-                </select>
-                <p><span>฿300</span></p>
-            </div>
-            <div class="quantity">
-                <div class="trash">
-                    <button class="trash-btn" type="button" name="button">
-                        <img src="img/trash.svg" alt="" />
-                    </button>
-                </div>
-                <button class="minus-btn" type="button" name="button">
-                  <img src="img/minus.svg" alt="" />
-                </button>
-                <input type="text" name="name" value="1">
-                <button class="plus-btn" type="button" name="button">
-                  <img src="img/plus.svg" alt="" />
-                </button>
-            </div>
-        </div>
-    <!-- End product 2 -->
+
         <div class="total-box">
-            <h2> Total Price: <span> ฿600 </span> </h2>
+            <h2> Total Price: <span> ฿<%= totalPrice %></span> </h2>
             <button class="checkout-btn">Checkout</button>
         </div>
     </div>   

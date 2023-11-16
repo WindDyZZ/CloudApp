@@ -34,9 +34,15 @@ router.get("/add_product",(req,res)=>{
     res.render('add_product');
 })
 
-router.get("/cart",(req,res)=>{
-    res.render('cart.ejs')
-})
+router.get("/cart", (req, res) => {
+    const Products = [
+        { product_name: "silk", image: "img/ex-product.png", price: 1000, description: "" },
+        { product_name: "silk", image: "img/ex-product.png", price: 1000, description: "" }
+    ];
+    res.render('cart.ejs', { Products: Products });
+});
+
+
 
 router.get("/history",(req,res)=>{
     res.render('history.ejs')
