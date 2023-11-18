@@ -57,13 +57,13 @@ router.get("/history", (req, res) => {
     if (status === 'purchased') {
         var product = 
         [{
-            name: 'purchased product ',
+            name: 'Purchased Product ',
             detail: 'product detail ...',
             tp_cost: 40,
             total_price: 200
         },
         {
-            name: 'purchased product 2 ',
+            name: 'Purchased Product 2 ',
             detail: 'product detail ...',
             tp_cost: 40,
             total_price: 200
@@ -72,7 +72,7 @@ router.get("/history", (req, res) => {
         
     }else if (status === 'cancel'){
         var product = [{
-            name: 'cancel product ',
+            name: 'Canceled Product ',
             detail: 'product detail ...',
             tp_cost: 40,
             total_price: 200
@@ -80,13 +80,13 @@ router.get("/history", (req, res) => {
     }else{
         var product = 
         [{
-            name: 'refund product ',
+            name: 'Refund Product ',
             detail: 'product detail ...',
             tp_cost: 40,
             total_price: 200
         },
         {
-            name: 'refund product 2 ',
+            name: 'Refund Product 2 ',
             detail: 'product detail ...',
             tp_cost: 40,
             total_price: 200
