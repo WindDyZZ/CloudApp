@@ -72,50 +72,105 @@ router.get("/register", (req, res) => {
 })
 
 router.post("/register",(req,res)=>{
-  // console.log('post register');
     const username = req.body.register_username.toLowerCase();
     const email = req.body.register_Email;
     const password = req.body.login_password;
     const fname = req.body.register_firstName;
     const lname = req.body.register_lastName;
 
-    // const put_command = async () => {
-    //   const command = new PutItemCommand({
-    //     TableName: "Users",
-    //     Item: {
-    //       email: "tawinc@gmail.com",
-    //     },
-    //   });
+
+
+    const params = {
+      TableName: 'Users',
+      Key: {
+        email: email, 
+      },
+    };
     
-    //   // const response = await docClient.send(command);
-    //   // console.log(response);
-    //   // return response;
-    // };
+    const command = new GetItemCommand(params); 
 
-    const input = {
-      TableName: "Users",
-      Item: {
-        email: "tawin@gmail.com"
+    const scanOperation = async () => {
+      try{
+        const response = await dynamoDB.send(command)
+        onsole.log("sucess",response);
+        if(response.Item){
+          res.render('register',{'existed_email':true});
+        }
+        else{
+          const params1 = {
+            TableName: 'Users',
+            ProjectionExpression: '#username, #email, #password, #firstname, #lastname', 
+            ExpressionAttributeNames: {
+              '#username': 'username',
+              '#email': 'email',
+              '#password': 'password',
+              '#firstname': 'firstname',
+              '#lastname': 'lastname',
+            },
+            FilterExpression: '#username = :usernameValue',
+            ExpressionAttributeValues: {
+              ':usernameValue': username, 
+            },
+          };
+
+          const command1 = new GetItemCommand(params1);
+          const performScan = async () => {
+            try{
+              const response = await dynamoDB.send(command1);
+              if(response.Item){
+                res.render('register',{'existed_username':true});
+              }
+              else{
+                const input = {
+                  TableName: "Users",
+                  Item: {
+                    email: email,
+                    username : username,
+                    password: password,
+                    firstName : fname,
+                    lastName : lname
+                  }
+                };
+                const command =  new PutCommand(input);
+                const performPutOperation = async () => {
+                  try {
+                    // Use await to wait for the response
+                    const response = await dynamoDB.send(command);
+                    console.log("sucess",response);
+                    cur_username = 'success';
+                  } catch (error) {
+                    console.error('Error putting item into DynamoDB:', error);
+                    cur_username = 'error'; 
+                  }
+                  finally{
+                    res.redirect('/home');
+                  }
+                  
+                };
+                performPutOperation();
+              }
+            }
+            catch (error) {
+              console.error('Error putting item into DynamoDB:', error);
+            }
+          };
+          performScan();
+          
+        }
       }
-    };
 
-    const command =  new PutCommand(input);
-    const performPutOperation = async () => {
-      try {
-        // Use await to wait for the response
-        const response = await dynamoDB.send(command);
-        console.log("sucess",response);
-        cur_username = 'success';
-      } catch (error) {
+      catch (error){
         console.error('Error putting item into DynamoDB:', error);
-        cur_username = 'error'; 
+        cur_username = 'error';
       }
-      finally{
-        res.redirect('/home');
-      }
-      
-    };
-    performPutOperation();
+    }
+
+    scanOperation();
+
+
+   
+
+    
 
   //   const emailCheckCommand = async () => {
   //       const command = new GetCommand({
