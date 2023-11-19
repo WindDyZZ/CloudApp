@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style/style.css">
     <link rel="stylesheet" href="./style/register.css">
+    <script src="./js/register.js"></script>
     <title>Register</title>
 </head>
 <body>
@@ -103,8 +104,17 @@
     <script>alert("This username has already used")</script>
 <% } %>
 
-<% if (typeof(error)!="undefined"){ %>
-    <script>alert("Erorr")</script>
+<% if (typeof(error1)!="undefined"){ %>
+    <script>alert("Error1")</script>
+<% } %>
+<% if (typeof(error2)!="undefined"){ %>
+    <script>alert("Error2")</script>
+<% } %>
+<% if (typeof(error3)!="undefined"){ %>
+    <script>alert("Error3")</script>
+<% } %>
+<% if (typeof(success)!="undefined"){ %>
+    <script>alert("Success")</script>
 <% } %>
     
 </body>

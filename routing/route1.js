@@ -1,24 +1,17 @@
 // import requirment
 const express = require('express');
-const { stat } = require('fs');
 const router = express.Router();
-// const path = require('path');
 const bodyParser = require('body-parser');
 const AWS = require('aws-sdk');
 const {
-  DynamoDBDocument, GetCommand, PutCommand
+  DynamoDBDocument, GetCommand, PutCommand, ScanCommand
 } = require('@aws-sdk/lib-dynamodb');
 const {
-  DynamoDBClient, GetItemCommand, DynamoDB, PutItemCommand
+  DynamoDBClient, 
 } = require('@aws-sdk/client-dynamodb');
 const client = new DynamoDBClient({region:'us-east-1'});
 const dynamoDB = DynamoDBDocument.from(client);
-// const dynamoTest = new DynamoDB({region:'us-east-1'});
-// router configuration
 router.use(bodyParser.urlencoded({extended:false}));
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
 AWS.config.update({
   accessKeyId:'ASIAUXN3NFEEKRSSU763',
   secretAccessKey:'DvPPXNfd3BkWrv9I+3EjMZFwrBhAl0JQUnwt/od8',
@@ -78,172 +71,116 @@ router.post("/register",(req,res)=>{
     const fname = req.body.register_firstName;
     const lname = req.body.register_lastName;
 
-
-
-    const params = {
+    const params_email = {
       TableName: 'Users',
       Key: {
-        email: email, 
+          email: email,
       },
-    };
-    
-    const command = new GetItemCommand(params); 
+  };
 
-    const scanOperation = async () => {
-      try{
-        const response = await dynamoDB.send(command)
-        onsole.log("sucess",response);
-        if(response.Item){
-          res.render('register',{'existed_email':true});
+  const command_email = new GetCommand(params_email);
+
+    const scanRegister = async  () => {
+      try {
+        const responseEmail = await dynamoDB.send(command_email);
+
+        if (responseEmail && responseEmail.Item) {
+            res.render('register', { 'existed_email': true });
+        } else {
+            
+          const params_username = {
+            TableName: 'Users',
+            Key: {
+                username: username,
+            },
+        };
+
+        const command_username = new GetCommand(params_username);
+        const responseUsername = await dynamoDB.send(command_username);
+
+        if (responseUsername && responseUsername.Item){
+          res.render('register', { 'existed_username': true });
         }
         else{
-          const params1 = {
-            TableName: 'Users',
-            ProjectionExpression: '#username, #email, #password, #firstname, #lastname', 
-            ExpressionAttributeNames: {
-              '#username': 'username',
-              '#email': 'email',
-              '#password': 'password',
-              '#firstname': 'firstname',
-              '#lastname': 'lastname',
-            },
-            FilterExpression: '#username = :usernameValue',
-            ExpressionAttributeValues: {
-              ':usernameValue': username, 
-            },
-          };
-
-          const command1 = new GetItemCommand(params1);
-          const performScan = async () => {
-            try{
-              const response = await dynamoDB.send(command1);
-              if(response.Item){
-                res.render('register',{'existed_username':true});
-              }
-              else{
-                const input = {
-                  TableName: "Users",
-                  Item: {
-                    email: email,
-                    username : username,
-                    password: password,
-                    firstName : fname,
-                    lastName : lname
-                  }
-                };
-                const command =  new PutCommand(input);
-                const performPutOperation = async () => {
-                  try {
-                    // Use await to wait for the response
-                    const response = await dynamoDB.send(command);
-                    console.log("sucess",response);
-                    cur_username = 'success';
-                  } catch (error) {
-                    console.error('Error putting item into DynamoDB:', error);
-                    cur_username = 'error'; 
-                  }
-                  finally{
-                    res.redirect('/home');
-                  }
-                  
-                };
-                performPutOperation();
-              }
-            }
-            catch (error) {
-              console.error('Error putting item into DynamoDB:', error);
-            }
-          };
-          performScan();
-          
+          res.render('register', { 'success': true });
         }
-      }
 
-      catch (error){
-        console.error('Error putting item into DynamoDB:', error);
-        cur_username = 'error';
       }
+    } catch (error) {
+        console.error('Error getting item from DynamoDB:', error);
+        res.render('register', { 'error1': true });
     }
+    };
 
-    scanOperation();
+    scanRegister();
 
+    // const scanEmail = async () => {
+    //   try{
+    //     const responseEmail = await dynamoDB.send(command_email);
+    //     if (responseEmail.Items && responseEmail.Items.length > 0) {
+    //       res.render('register',{'existed_email':true});
+    //     } else {
+    //       const params_username = {
+    //         TableName: 'Users',
+    //         FilterExpression: 'username = :username',
+    //         ProjectionExpression: 'username', 
+    //         ExpressionAttributeValues: {
+    //           ':username': { S: username },
+    //         },
+    //       };
 
-   
+    //       const command_username = new ScanCommand(params_username);
+    //       const scanUsername = async () => {
+    //         try{
+    //           const responseUsername = await dynamoDB.send(command_username);
+    //           if (responseUsername.Items && responseUsername.Items.length > 0) {
+    //             res.render('register',{'existed_username':true});
+    //           } else {
+    //             const input = {
+    //               TableName: "Users",
+    //               Item: {
+    //                 email: email,
+    //                 username : username,
+    //                 password: password,
+    //                 firstName : fname,
+    //                 lastName : lname
+    //               }
+    //             };
 
-    
+    //             const command =  new PutCommand(input);
+    //             const performPutOperation = async () => {
+    //               try {
+    //                 const response = await dynamoDB.send(command);
+    //                 console.log("sucess",response);
+    //                 cur_username = 'success';
+    //                 res.redirect('/home');
+    //               } catch (error) {
+    //                 console.error('Error putting item into DynamoDB:', error);
+    //                 res.render('register',{'error1':true});
+    //               }
+                  
+    //             };
 
-  //   const emailCheckCommand = async () => {
-  //       const command = new GetCommand({
-  //         TableName: "Users",
-  //         Key: {
-  //           'email': email,
-  //         },
-  //       });
-    
-  //       try {
-  //         const response = await dynamoDB.send(command);
-  //         console.log(response);
-  //         return response;
-  //       } catch (error) {
-  //         console.error('Error retrieving item from DynamoDB:', error);
-  //         return null;
-  //       }
-  //     };
+    //             performPutOperation();
+    //           }
+    //         } catch (error) {
+    //           console.error('Error scanning DynamoDB Username:', error);
+    //           res.render('register',{'error2':true});
+    //         }
+    //       }
 
-  //     const data =  emailCheckCommand();
+    //       scanUsername();
 
-  //     if (data && data.Item ) {
-  //       res.render('register', { 'existed_email': true });
-  //     } else {
-  //       const usernameCheckCommand = async () => {
-  //           const command = new GetCommand({
-  //             TableName: "Users",
-  //             Key: {
-  //               'username': username,
-  //             },
-  //           });
-        
-  //           try {
-  //             const response = await dynamoDB.send(command);
-  //             console.log(response);
-  //             return response;
-  //           } catch (error) {
-  //             console.error('Error retrieving item from DynamoDB:', error);
-  //             return null;
-  //           }
-  //         };
-    
-  //         const data =  usernameCheckCommand();
-    
-  //         if (data && data.Item ) {
-  //           res.render('register', { 'existed_username': true });
-  //         } else {
-  //           const  putItemCommand =  new PutCommand({
-  //               TableName: 'Users',
-  //               Item: {
-  //                 'email': { S: email },
-  //                 'username': { S: username },
-  //                 'password': { S: password },
-  //                 'firstname': { S: fname },
-  //                 'lastname': { S: lname },
-  //               },
-  //             });
+    //     }
 
-  //             try {
-  //               const putItemResponse =  dynamoDB.send(putItemCommand);
-  //               console.log('Item inserted successfully:', putItemResponse);
-  //               cur_username = username;
-  //               // res.render('home',{'username':cur_username}); // You can render a success page or redirect as needed
-  //               res.redirect('/home');
-  //             } catch (error) {
-  //               console.error('Error inserting item into DynamoDB:', error);
-  //               res.render('register',{'error':true}); // Render an error page or handle the error accordingly
-  //             }
-  //         }
-          
-  //     }
-      
-    
+    //   } catch (error){
+    //     console.error('Error scanning DynamoDB Email:', error);
+    //     res.render('register',{'error3':true});
+    //   }
+    // };
+
+    // scanEmail();
+
 })
 
 router.get("/index", (req, res) => {
@@ -252,13 +189,6 @@ router.get("/index", (req, res) => {
 })
 
 router.get("/home", (req, res) => {
-  // if(cur_username===''){res.redirect('/')}
-  // else{
-  //   const num = 10;
-  //   const pnum = 2;
-  //   res.render('home.ejs', { num: num, pnum: pnum ,'username':cur_username});
-  // }
-    
   res.render('home.ejs', {'username':cur_username});
 })
 
@@ -281,8 +211,6 @@ router.get("/cart", (req, res) => {
     ];
     res.render('cart.ejs', { Products: Products });
 });
-
-
 
 
 
