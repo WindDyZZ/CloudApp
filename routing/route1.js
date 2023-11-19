@@ -13,12 +13,17 @@ const {
 } = require('@aws-sdk/client-dynamodb');
 const client = new DynamoDBClient({region:'us-east-1'});
 const dynamoDB = DynamoDBDocument.from(client);
+// const dynamoTest = new DynamoDB({region:'us-east-1'});
 // router configuration
 router.use(bodyParser.urlencoded({extended:false}));
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.update({
   accessKeyId:'ASIAUXN3NFEEKRSSU763',
   secretAccessKey:'DvPPXNfd3BkWrv9I+3EjMZFwrBhAl0JQUnwt/od8',
   region:'us-east-1',
+
 });
 // assign global var username
 let cur_username = '';
@@ -88,24 +93,29 @@ router.post("/register",(req,res)=>{
     // };
 
     const input = {
-      "Item": {
-        "email": {
-          "S": "tawin@gmail.com"
-        }
-      },
-      "TableName": "Users"
+      TableName: "Users",
+      Item: {
+        email: "tawin@gmail.com"
+      }
     };
 
     const command =  new PutCommand(input);
     const performPutOperation = async () => {
       try {
         // Use await to wait for the response
-        const response = await client.send(command);
-        console.log(response);
+        const response = await dynamoDB.send(command);
+        console.log("sucess",response);
+        cur_username = 'success';
       } catch (error) {
         console.error('Error putting item into DynamoDB:', error);
+        cur_username = 'error'; 
       }
+      finally{
+        res.redirect('/home');
+      }
+      
     };
+    performPutOperation();
 
   //   const emailCheckCommand = async () => {
   //       const command = new GetCommand({
@@ -177,8 +187,7 @@ router.post("/register",(req,res)=>{
   //         }
           
   //     }
-      cur_username = 'error';
-      res.redirect('/home');
+      
     
 })
 
