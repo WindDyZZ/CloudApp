@@ -74,22 +74,38 @@ router.post("/register",(req,res)=>{
     const fname = req.body.register_firstName;
     const lname = req.body.register_lastName;
 
-    const put_command = async () => {
-      const command = new PutItemCommand({
-        TableName: "Users",
-        Item: {
-          email: "tawinc@gmail.com",
-        },
-      });
+    // const put_command = async () => {
+    //   const command = new PutItemCommand({
+    //     TableName: "Users",
+    //     Item: {
+    //       email: "tawinc@gmail.com",
+    //     },
+    //   });
     
-      // const response = await docClient.send(command);
-      // console.log(response);
-      // return response;
+    //   // const response = await docClient.send(command);
+    //   // console.log(response);
+    //   // return response;
+    // };
+
+    const input = {
+      "Item": {
+        "email": {
+          "S": "tawin@gmail.com"
+        }
+      },
+      "TableName": "Users"
     };
 
-    const command =  put_command();
-    const response = client.send(command);
-    console.log(response);
+    const command =  new PutCommand(input);
+    const performPutOperation = async () => {
+      try {
+        // Use await to wait for the response
+        const response = await client.send(command);
+        console.log(response);
+      } catch (error) {
+        console.error('Error putting item into DynamoDB:', error);
+      }
+    };
 
   //   const emailCheckCommand = async () => {
   //       const command = new GetCommand({
