@@ -95,6 +95,17 @@
         </div>
    </div>
     
+<% if (typeof(existed_email)!="undefined"){ %>
+    <script>alert("This email has already registered")</script>
+<% } %>
+
+<% if (typeof(existed_username)!="undefined"){ %>
+    <script>alert("This username has already used")</script>
+<% } %>
+
+<% if (typeof(error)!="undefined"){ %>
+    <script>alert("Erorr")</script>
+<% } %>
     
 </body>
 </html>

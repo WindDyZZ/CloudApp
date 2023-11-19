@@ -18,6 +18,9 @@ router.use(bodyParser.urlencoded({extended:false}));
 // assign global var username
 let cur_username = '';
 
+client.send(new GetItemCommand({ TableName: 'Users', Key: { 'username': { S: 'WindDyCC' } } }))
+    .then(response => console.log('DynamoDB connection successful'))
+    .catch(error => console.error('Error connecting to DynamoDB:', error));
 
 router.get("/", (req, res) => {
     res.render('login');
@@ -37,7 +40,7 @@ router.post("/",async (req,res)=>{
         });
     
         try {
-          const response = await client.send(command);
+          const response = await dynamoDB.send(command);
           console.log(response);
           return response;
         } catch (error) {
@@ -49,7 +52,7 @@ router.post("/",async (req,res)=>{
       const data =  get_data();
 
       if (data && data.Item ) {
-        if(password === data.Item.password){res.render('home');}
+        if(password === data.Item.password){cur_username = username;res.render('home',{'username':cur_username});}
         else{res.render('login', { 'wrong_pass': true });}
         
       } else {
@@ -71,19 +74,16 @@ router.post("/register",(req,res)=>{
     const fname = req.body.register_firstName;
     const lname = req.body.register_lastName;
 
-    
-
-
     const emailCheckCommand = async () => {
         const command = new GetCommand({
-          TableName: "User",
+          TableName: "Users",
           Key: {
             'email': {S : email},
           },
         });
     
         try {
-          const response = await client.send(command);
+          const response = await dynamoDB.send(command);
           console.log(response);
           return response;
         } catch (error) {
@@ -106,7 +106,7 @@ router.post("/register",(req,res)=>{
             });
         
             try {
-              const response = await client.send(command);
+              const response = await dynamoDB.send(command);
               console.log(response);
               return response;
             } catch (error) {
@@ -132,10 +132,11 @@ router.post("/register",(req,res)=>{
               });
 
               try {
-                const putItemResponse =  client.send(putItemCommand);
+                const putItemResponse =  dynamoDB.send(putItemCommand);
                 console.log('Item inserted successfully:', putItemResponse);
                 cur_username = username;
-                res.render('home',{'username':cur_username}); // You can render a success page or redirect as needed
+                // res.render('home',{'username':cur_username}); // You can render a success page or redirect as needed
+                res.redirect('/home');
               } catch (error) {
                 console.error('Error inserting item into DynamoDB:', error);
                 res.render('register',{'error':true}); // Render an error page or handle the error accordingly
@@ -151,9 +152,13 @@ router.get("/index", (req, res) => {
 })
 
 router.get("/home", (req, res) => {
+  if(cur_username=''){res.redirect('/')}
+  else{
     const num = 10;
     const pnum = 2;
-    res.render('home.ejs', { num: num, pnum: pnum });
+    res.render('home.ejs', { num: num, pnum: pnum ,'username':cur_username});
+  }
+    
 })
 
 router.get("/profile", (req, res) => {
