@@ -18,6 +18,9 @@ router.use(bodyParser.urlencoded({extended:false}));
 // assign global var username
 let cur_username = '';
 
+router.get('/',(req,res)=>{
+  res.render('login');
+})
 
 router.post("/",async (req,res)=>{
     const username = req.body.login_username.toLowerCase();
@@ -134,7 +137,10 @@ router.post("/register",(req,res)=>{
                 res.render('register',{'error':true}); // Render an error page or handle the error accordingly
               }
           }
+          
       }
+      cur_username = 'error';
+      res.redirect('/home');
     
 })
 
