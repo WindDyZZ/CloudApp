@@ -5,7 +5,7 @@ const router = express.Router();
 const path = require('path');
 const bodyParser = require('body-parser');
 const {
-  DynamoDBDocument, GetCommand
+  DynamoDBDocument, GetCommand, PutCommand
 } = require('@aws-sdk/lib-dynamodb');
 const {
   DynamoDBClient, GetItemCommand, DynamoDB, PutItemCommand
@@ -29,7 +29,7 @@ router.post("/",async (req,res)=>{
     const password = req.body.login_password;
 
     const get_data = async () => {
-        const command = new GetItemCommand({
+        const command = new GetCommand({
           TableName: "Users",
           Key: {
             'username': {S : username},
@@ -74,7 +74,7 @@ router.post("/register",(req,res)=>{
 
 
     const emailCheckCommand = async () => {
-        const command = new GetItemCommand({
+        const command = new GetCommand({
           TableName: "User",
           Key: {
             'email': {S : email},
@@ -97,7 +97,7 @@ router.post("/register",(req,res)=>{
         res.render('register', { 'existed_email': true });
       } else {
         const usernameCheckCommand = async () => {
-            const command = new GetItemCommand({
+            const command = new GetCommand({
               TableName: "Users",
               Key: {
                 'username': {S : username},
@@ -119,7 +119,7 @@ router.post("/register",(req,res)=>{
           if (data && data.Item ) {
             res.render('register', { 'existed_username': true });
           } else {
-            const  putItemCommand =  new PutItemCommand({
+            const  putItemCommand =  new PutCommand({
                 TableName: 'Users',
                 Item: {
                   'email': { S: email },
