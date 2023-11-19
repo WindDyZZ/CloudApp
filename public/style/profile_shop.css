@@ -41,6 +41,11 @@
             font-size: 65px;
             font-weight: 400;
             flex-shrink: 0;
+            text-decoration: none;
+
+            &:hover {
+                color:#441010;
+            }
         }
 
         .page-bar{

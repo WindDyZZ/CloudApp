@@ -10,7 +10,7 @@
     <div class="container">
         <div class="top-banner"></div>
         <div class="nav-bar">
-            <div class="logo">OTOP</div>
+            <a class="logo" href="home">OTOP</a>
             <div class="page-bar">
                 <div class="cur-page"> > Profile </div>
                 <div class="icon">
@@ -19,7 +19,7 @@
                         <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/>
                     </svg>
                 </div>
-            </div>
+            </div> 
             
         </div>
         <div class="content">
@@ -27,13 +27,14 @@
                 <ul class="option">
                     <li class="profile_cur"><a href="#">My Profile</a></li>
                     <li class="profile"><a href="myshop">My Shop</a></li>
+                    <li class="profile"><a href="logout">Log Out</a></li>
                 </ul>
             </div>
 
             <div class="vl"></div>
             
             <div class="option-content">
-                <div class="option-name option-same"><p>My Profile</p></div>
+                <div class="option-name option-same"><p>My Profile <%= username%></p></div>
                 <hr>
                 <div class="profile-img">
                     <img src="./img/userprofile.png" alt="user-profile">
