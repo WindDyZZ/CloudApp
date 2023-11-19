@@ -44,28 +44,39 @@
                 <div class="user-info">
                     <form action="#">
                         <div class="username">
-                            <label for="username"><%= Item ? Item.username : 'N/A' %></label>
-                            <input type="text" name="username" value="Username" readonly>
+                            <label for="username">Username</label>
+                            <input type="text" name="username" value="<%= userData.username %>"/>
                             <a href="#">Change</a>
                         </div>
                         <div class="user-email">
-                            <label for="user-email"><%= Item ? Item.email : 'N/A' %></label>
-                            <input type="text" name="user-email" value="UserEmail" readonly>
+                            <label for="user-email">Email</label>
+                            <input type="text" name="user-email" value="<%= userData.email %>" >
                             <a href="#">Change</a>
                         </div>
+                        <!-- <div class="userAddress">
+                            <label for="username">Username</label>
+                            <input type="text" name="username" value="<%= userData.username %>"/>
+                            <a href="#">Change</a>
+                        </div>
+                        <div class="userFname">
+                            <label for="user-email">Email</label>
+                            <input type="text" name="user-email" value="<%= userData.email %>" >
+                            <a href="#">Change</a>
+                        </div>
+                        <div class="userLname">
+                            <label for="username">Username</label>
+                            <input type="text" name="username" value="<%= userData.username %>"/>
+                            <a href="#">Change</a>
+                        </div>
+                        <div class="userPassword">
+                            <label for="user-email">Email</label>
+                            <input type="text" name="user-email" value="<%= userData.email %>" >
+                            <a href="#">Change</a>
+                        </div> -->
                     </form>
-                    
                 </div>
             </div>
         </div>
-        <!-- <footer style="height: 100px; position: absolute;">
-            <img src="./img/Wave.png" alt="">
-        </footer> -->
-
-        <!-- <footer>
-            <img src="./img/Wave.png" alt="">
-        </footer>
-         -->
     </div>
     
     
