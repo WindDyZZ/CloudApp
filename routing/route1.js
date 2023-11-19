@@ -2,7 +2,7 @@
 const express = require('express');
 const { stat } = require('fs');
 const router = express.Router();
-const path = require('path');
+// const path = require('path');
 const bodyParser = require('body-parser');
 const {
   DynamoDBDocument, GetCommand, PutCommand
