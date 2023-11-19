@@ -2,14 +2,141 @@ const express = require('express');
 const { stat } = require('fs');
 const router = express.Router();
 const path = require('path');
+const bodyParser = require('body-parser');
+const {
+  DynamoDBDocument, GetCommand
+} = require('@aws-sdk/lib-dynamodb');
+
+const {
+  DynamoDBClient, GetItemCommand, DynamoDB, PutItemCommand
+} = require('@aws-sdk/client-dynamodb');
+
+
+const client = new DynamoDBClient({region:'us-east-1'});
+const dynamoDB = DynamoDBDocument.from(client);
+
+
+router.use(bodyParser.urlencoded({extended:false}));
+
 
 
 router.get("/", (req, res) => {
     res.render('login');
 })
 
+
+router.post("/",(req,res)=>{
+    const username = req.body.login_username.toLowerCase();
+    const password = req.body.login_password;
+
+    const get_data = async () => {
+        const command = new GetItemCommand({
+          TableName: "Users",
+          Key: {
+            'username': {S : email},
+          },
+        });
+    
+        try {
+          const response = await client.send(command);
+          console.log(response);
+          return response;
+        } catch (error) {
+          console.error('Error retrieving item from DynamoDB:', error);
+          return null;
+        }
+      };
+
+      const data =  get_data();
+
+      if (data && data.Item && password === data.Item.password) {
+        res.render('home');
+      } else {
+        res.render('login', { 'wrong_pass': true });
+      }
+    
+})
+
 router.get("/register", (req, res) => {
     res.render('register');
+})
+
+router.post("/register",(req,res)=>{
+    const username = req.body.register_username.toLowerCase();
+    const email = req.body.register_Email;
+    const password = req.body.login_password;
+    const fname = req.body.register_firstName;
+    const lname = req.body.register_lastName;
+
+
+    const emailCheckCommand = async () => {
+        const command = new GetItemCommand({
+          TableName: "User",
+          Key: {
+            'email': email,
+          },
+        });
+    
+        try {
+          const response = await client.send(command);
+          console.log(response);
+          return response;
+        } catch (error) {
+          console.error('Error retrieving item from DynamoDB:', error);
+          return null;
+        }
+      };
+
+      const data =  emailCheckCommand();
+
+      if (data && data.Item ) {
+        res.render('register', { 'existed_email': true });
+      } else {
+        const usernameCheckCommand = async () => {
+            const command = new GetItemCommand({
+              TableName: "Users",
+              Key: {
+                'username': {S : username},
+              },
+            });
+        
+            try {
+              const response = await client.send(command);
+              console.log(response);
+              return response;
+            } catch (error) {
+              console.error('Error retrieving item from DynamoDB:', error);
+              return null;
+            }
+          };
+    
+          const data =  usernameCheckCommand();
+    
+          if (data && data.Item ) {
+            res.render('register', { 'existed_username': true });
+          } else {
+            const  putItemCommand =  new PutItemCommand({
+                TableName: 'Users',
+                Item: {
+                  'username': { S: username },
+                  'email': { S: email },
+                  'password': { S: password },
+                  'firstname': { S: fname },
+                  'lastname': { S: lname },
+                },
+              });
+
+              try {
+                const putItemResponse =  client.send(putItemCommand);
+                console.log('Item inserted successfully:', putItemResponse);
+                res.render('success'); // You can render a success page or redirect as needed
+              } catch (error) {
+                console.error('Error inserting item into DynamoDB:', error);
+                res.render('register',{'error':true}); // Render an error page or handle the error accordingly
+              }
+          }
+      }
+    
 })
 
 router.get("/index", (req, res) => {
