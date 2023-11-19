@@ -402,7 +402,7 @@
     .in-cart {
         display: flex;
         flex-flow: row wrap;
-        width: 90%;
+        width: 95%;
         border-radius: 10px;
         background: #FFF;
         align-items: center;
