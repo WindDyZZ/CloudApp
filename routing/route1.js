@@ -4,7 +4,7 @@ const router = express.Router();
 const bodyParser = require('body-parser');
 const AWS = require('aws-sdk');
 const {
-  DynamoDBDocument, GetCommand, PutCommand, ScanCommand
+  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, QueryCommand
 } = require('@aws-sdk/lib-dynamodb');
 const {
   DynamoDBClient, 
@@ -70,49 +70,93 @@ router.post("/register",(req,res)=>{
     const password = req.body.login_password;
     const fname = req.body.register_firstName;
     const lname = req.body.register_lastName;
+    const address = req.body.register_address;
 
+// Insert Input
+
+const performPutOperation = async () => {
+  const input = {
+     TableName: "Users",
+     Item: {
+       email: email,
+       username : username,
+       password: password,
+       firstName : fname,
+       lastName : lname,
+       address : address
+     }
+   };
+   const command = await new PutCommand(input);
+    try {
+      const response = await dynamoDB.send(command);
+      console.log("sucess",response);
+      res.redirect('/home');
+    } catch (error) {
+      console.error('Error putting item into DynamoDB:', error);
+      res.render('register',{'error3':true});
+    }
+    
+};
+
+  // Scan Username
+  const scanUsername = async () => {
+    const params_username = {
+      TableName: 'Users',
+      FilterExpression: 'username = :username',
+      ExpressionAttributeValues: {
+        ':username': { 'S': username },
+      },
+      ProjectionExpression: 'username',
+    };
+
+    const command_username = new ScanCommand(params_username);
+      try {
+          const responseUsername = await dynamoDB.send(command_username);
+  
+          if (responseUsername && responseUsername.Items && responseUsername.Items.length > 0) {
+              res.render('register', { 'existed_username': true });
+          } 
+          
+          else {
+              // res.render('register', { 'success': true });
+              cur_username = JSON.stringify(responseUsername.Items.username);
+              performPutOperation();
+          }
+      } 
+      
+      catch (error) {
+          console.error('Error getting item from DynamoDB:', error);
+          res.render('register', { 'error2': true });
+      }
+  };
+
+  // Scan email and all
+  
+  const scanRegister = async () => {
     const params_email = {
       TableName: 'Users',
       Key: {
           email: email,
       },
-  };
-
-  const command_email = new GetCommand(params_email);
-
-    const scanRegister = async  () => {
-      try {
-        const responseEmail = await dynamoDB.send(command_email);
-
-        if (responseEmail && responseEmail.Item) {
-            res.render('register', { 'existed_email': true });
-        } else {
-            
-          const params_username = {
-            TableName: 'Users',
-            Key: {
-                username: username,
-            },
-        };
-
-        const command_username = new GetCommand(params_username);
-        const responseUsername = await dynamoDB.send(command_username);
-
-        if (responseUsername && responseUsername.Item){
-          res.render('register', { 'existed_username': true });
-        }
-        else{
-          res.render('register', { 'success': true });
-        }
-
-      }
-    } catch (error) {
-        console.error('Error getting item from DynamoDB:', error);
-        res.render('register', { 'error1': true });
-    }
     };
-
-    scanRegister();
+  
+    const command_email = new GetCommand(params_email);
+      try {
+          const responseEmail = await dynamoDB.send(command_email);
+  
+          if (responseEmail && responseEmail.Items) {
+              res.render('register', { 'existed_email': true });
+          } else {
+            scanUsername();
+          }
+      } catch (error) {
+          console.error('Error getting item from DynamoDB:', error);
+          res.render('register', { 'error1': true });
+      }
+  };
+  
+  scanRegister();
+  
 
     // const scanEmail = async () => {
     //   try{
