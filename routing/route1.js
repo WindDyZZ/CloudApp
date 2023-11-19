@@ -18,14 +18,6 @@ router.use(bodyParser.urlencoded({extended:false}));
 // assign global var username
 let cur_username = '';
 
-client.send(new GetItemCommand({ TableName: 'Users', Key: { 'username': { S: 'WindDyCC' } } }))
-    .then(response => console.log('DynamoDB connection successful'))
-    .catch(error => console.error('Error connecting to DynamoDB:', error));
-
-router.get("/", (req, res) => {
-    res.render('login');
-})
-
 
 router.post("/",async (req,res)=>{
     const username = req.body.login_username.toLowerCase();
@@ -35,7 +27,7 @@ router.post("/",async (req,res)=>{
         const command = new GetCommand({
           TableName: "Users",
           Key: {
-            'username': {S : username},
+            'username': username,
           },
         });
     
@@ -52,7 +44,7 @@ router.post("/",async (req,res)=>{
       const data =  get_data();
 
       if (data && data.Item ) {
-        if(password === data.Item.password){cur_username = username;res.render('home',{'username':cur_username});}
+        if(password === data.Item.password){cur_username = username;res.redirect('/home');}
         else{res.render('login', { 'wrong_pass': true });}
         
       } else {
@@ -78,7 +70,7 @@ router.post("/register",(req,res)=>{
         const command = new GetCommand({
           TableName: "Users",
           Key: {
-            'email': {S : email},
+            'email': email,
           },
         });
     
@@ -101,7 +93,7 @@ router.post("/register",(req,res)=>{
             const command = new GetCommand({
               TableName: "Users",
               Key: {
-                'username': {S : username},
+                'username': username,
               },
             });
         
@@ -152,7 +144,7 @@ router.get("/index", (req, res) => {
 })
 
 router.get("/home", (req, res) => {
-  if(cur_username=''){res.redirect('/')}
+  if(cur_username===''){res.redirect('/')}
   else{
     const num = 10;
     const pnum = 2;
@@ -162,7 +154,7 @@ router.get("/home", (req, res) => {
 })
 
 router.get("/profile", (req, res) => {
-    res.render('profile');
+    res.render('profile',{'username':cur_username});
 })
 
 router.get("/myshop", (req, res) => {
@@ -236,7 +228,7 @@ router.get("/history", (req, res) => {
 
 router.get('/logout', (req,res)=>{
   cur_username = '';
-  res.render('login');
+  res.redirect('/');
 })
 
 
