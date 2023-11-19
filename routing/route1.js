@@ -64,6 +64,7 @@ router.get("/register", (req, res) => {
 })
 
 router.post("/register",(req,res)=>{
+  console.log('post register');
     const username = req.body.register_username.toLowerCase();
     const email = req.body.register_Email;
     const password = req.body.login_password;
