@@ -24,7 +24,7 @@ router.get("/", (req, res) => {
 })
 
 
-router.post("/",(req,res)=>{
+router.post("/",async (req,res)=>{
     const username = req.body.login_username.toLowerCase();
     const password = req.body.login_password;
 
@@ -32,7 +32,7 @@ router.post("/",(req,res)=>{
         const command = new GetItemCommand({
           TableName: "Users",
           Key: {
-            'username': {S : email},
+            'username': {S : username},
           },
         });
     
@@ -48,10 +48,13 @@ router.post("/",(req,res)=>{
 
       const data =  get_data();
 
-      if (data && data.Item && password === data.Item.password) {
-        res.render('home');
+      if (data && data.Item ) {
+        if(password === data.Item.password){res.render('home');}
+        else{res.render('login', { 'wrong_pass': true });}
+        
       } else {
-        res.render('login', { 'wrong_pass': true });
+        cur_username = username;
+        res.render('login', { 'user_not_existed':true });
       }
     
 })
@@ -67,12 +70,14 @@ router.post("/register",(req,res)=>{
     const fname = req.body.register_firstName;
     const lname = req.body.register_lastName;
 
+    
+
 
     const emailCheckCommand = async () => {
         const command = new GetItemCommand({
           TableName: "User",
           Key: {
-            'email': email,
+            'email': {S : email},
           },
         });
     
@@ -117,8 +122,8 @@ router.post("/register",(req,res)=>{
             const  putItemCommand =  new PutItemCommand({
                 TableName: 'Users',
                 Item: {
-                  'username': { S: username },
                   'email': { S: email },
+                  'username': { S: username },
                   'password': { S: password },
                   'firstname': { S: fname },
                   'lastname': { S: lname },
@@ -128,7 +133,8 @@ router.post("/register",(req,res)=>{
               try {
                 const putItemResponse =  client.send(putItemCommand);
                 console.log('Item inserted successfully:', putItemResponse);
-                res.render('success'); // You can render a success page or redirect as needed
+                cur_username = username;
+                res.render('home',{'username':cur_username}); // You can render a success page or redirect as needed
               } catch (error) {
                 console.error('Error inserting item into DynamoDB:', error);
                 res.render('register',{'error':true}); // Render an error page or handle the error accordingly
@@ -220,6 +226,11 @@ router.get("/history", (req, res) => {
     ]
     }
     res.render('history.ejs', {product:product})
+})
+
+router.get('/logout', (req,res)=>{
+  cur_username = '';
+  res.render('login');
 })
 
 
