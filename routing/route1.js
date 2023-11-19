@@ -1,3 +1,4 @@
+// import requirment
 const express = require('express');
 const { stat } = require('fs');
 const router = express.Router();
@@ -6,18 +7,16 @@ const bodyParser = require('body-parser');
 const {
   DynamoDBDocument, GetCommand
 } = require('@aws-sdk/lib-dynamodb');
-
 const {
   DynamoDBClient, GetItemCommand, DynamoDB, PutItemCommand
 } = require('@aws-sdk/client-dynamodb');
-
-
 const client = new DynamoDBClient({region:'us-east-1'});
 const dynamoDB = DynamoDBDocument.from(client);
-
-
+// router configuration
 router.use(bodyParser.urlencoded({extended:false}));
 
+// assign global var username
+let cur_username = '';
 
 
 router.get("/", (req, res) => {
