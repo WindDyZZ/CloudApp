@@ -34,7 +34,8 @@
                             </svg>
                         </div>
 
-                        <Button id="select-profile">Select Profile Picture</Button>
+                        <label for="profilePictureInput"><Button id="select-profile" onclick="document.getElementById('profilePictureInput').click(); return false;">Select Profile Picture</Button></label>
+                        <input type="file" id="profilePictureInput" style="display: none;" accept="image/*">
                         
                     </div>
 

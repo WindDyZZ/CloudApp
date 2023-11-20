@@ -21,10 +21,12 @@
   },
   "homepage": "https://github.com/WindDyZZ/CloudApp#readme",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.454.0",
     "@aws-sdk/lib-dynamodb": "^3.454.0",
     "aws-sdk": "^2.1499.0",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
     "nodemon": "^3.0.1"
   }
 }

@@ -9,16 +9,33 @@ const {
 const {
   DynamoDBClient, 
 } = require('@aws-sdk/client-dynamodb');
+const { PutCommand } = require('@aws-sdk/client-s3');
+const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
 const client = new DynamoDBClient({region:'us-east-1'});
 const dynamoDB = DynamoDBDocument.from(client);
 router.use(bodyParser.urlencoded({extended:false}));
+
+// AWS configuration
 AWS.config.update({
   accessKeyId:'ASIA3KOLCAFPAEBODSGK',
   secretAccessKey:'UwjvnAHVjuP6q6tB7o22aeNIpOZRwmimUN6BAYtE',
   region:'us-east-1',
 
 });
-// assign global var username
+
+// AWS S3 configuration
+const s3 = new AWS.S3({
+  accessKeyId: 'your-access-key-id',
+  secretAccessKey: 'your-secret-access-key',
+  region: 'your-region',
+});
+
+// Multer configuration
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// Assign global var username
 let cur_user = '';
 
 router.get('/',(req,res)=>{
@@ -64,11 +81,12 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Register
 router.get("/register", (req, res) => {
     res.render('register');
 })
 
-router.post("/register", async (req, res) => {
+router.post("/register",upload.single('profilePicture'), async (req, res) => {
   const username = req.body.register_username.toLowerCase();
   const email = req.body.register_Email;
   const password = req.body.login_password;
@@ -104,7 +122,18 @@ router.post("/register", async (req, res) => {
           if ( responseUsername.Count != 0) {
               res.render('register', { 'existed_username': true });
           } else {
-              const input = {
+
+              const uploadS3 = {
+                Bucket: 'web-otop',
+                Key: `profile-pictures/${uuidv4()}.jpg`, 
+                Body: req.file.buffer,
+                ContentType: 'image/jpeg', 
+              };
+
+              try{
+                const uploadResponse = await s3.send(new PutCommand(uploadS3));
+                const s3Url = `https://${params.Bucket}.s3.${s3.config.region}.amazonaws.com/${params.Key}`;
+                const input = {
                   TableName: "Users",
                   Item: {
                       email:    email,
@@ -113,26 +142,29 @@ router.post("/register", async (req, res) => {
                       firstName: fname,
                       lastName: lname,
                       address : address,
+                      profile_pic: s3Url,
                   },
-              };
-
-              const putCommand = new PutCommand(input);
-              await dynamoDB.send(putCommand);
-              try{
-                cur_user = {
-                  username:  email,
-                  email:     username,
-                  password:  password,
-                  firstName: fname,
-                  lastName:  lname,
-                  address:   address,
                 };
+
+                try{
+                  const putCommand = new PutCommand(input);
+                  await dynamoDB.send(putCommand);
+
+                  cur_user = {
+                    username:  email,
+                    email:     username,
+                    password:  password,
+                    firstName: fname,
+                    lastName:  lname,
+                    address:   address,
+                  };
+                }
+                catch(error){res.render('register',{'error2':true});}   
+                res.redirect('/home');
               }
               catch(error){
-                res.render('register',{'error2':true});
+                res.render('register',{'error3':true});
               }
-              
-              res.redirect('/home');
           }
       }
   } catch (error) {
