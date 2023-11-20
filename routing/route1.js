@@ -11,26 +11,13 @@ const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/cli
 const {
   DynamoDBClient, 
 } = require('@aws-sdk/client-dynamodb');
-// const { PutCommand } = require('@aws-sdk/client-s3');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const client = new DynamoDBClient({region:'us-east-1'});
 const dynamoDB = DynamoDBDocument.from(client);
 router.use(bodyParser.urlencoded({extended:false}));
 
-//AWS configuration
-// AWS.config.update({
-//   accessKeyId:'ASIA3KOLCAFPAEBODSGK',
-//   secretAccessKey:'UwjvnAHVjuP6q6tB7o22aeNIpOZRwmimUN6BAYtE',
-//   region:'us-west-1',
-// });
 
-// AWS S3 configuration
-// const s3 = new AWS.S3({
-//   accessKeyId: 'your-access-key-id',
-//   secretAccessKey: 'your-secret-access-key',
-//   region: 'your-region',
-// });
 const s3 = new S3Client({region:'us-east-1'})
 
 // Multer configuration
@@ -129,7 +116,7 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
 
 
               const uploadS3 = {
-                "Bucket": 'web-otop-jiji',
+                "Bucket": 'web-otop',
                 "Key": `profile-pictures/${uuidv4()}.jpg`, 
                 "Body": req.file.buffer,
                 "ContentType": 'image/jpeg', 
@@ -140,7 +127,7 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
                 const uploadResponse = await s3.send(command);
                 // const uploadResponse = await s3.send(new PutCommand(uploadS3));
                 // const s3Url = `https://${params.Bucket}.s3.${s3.config.region}.amazonaws.com/${params.Key}`;
-                const s3Url = `https://web-otop-jiji.s3.amazonaws.com/${uploadS3.Key}`;
+                const s3Url = `https://web-otop.s3.amazonaws.com/${uploadS3.Key}`;
                 const input = {
                   TableName: "Users",
                   Item: {
@@ -159,8 +146,8 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
                   await dynamoDB.send(putCommand);
 
                   cur_user = {
-                    username:  email,
-                    email:     username,
+                    username:  username,
+                    email:     email,
                     password:  password,
                     firstName: fname,
                     lastName:  lname,
@@ -189,42 +176,37 @@ router.get("/index", (req, res) => {
     res.render('index.ejs', { name: name });
 })
 
-router.get("/home", (req, res) => {
+router.get("/home", async (req, res) => {
 
   if (Object.keys(cur_user).length === 0) {
     res.redirect('/');
-} else {
-    res.render('home', {'cur_user': cur_user });
-}
-  // const username = cur_username;
+} 
+    const limit = 8;
+    let product_data = '';
 
-  // // Fetch user data from DynamoDB using the username
-  // const getUserData = async (username) => {
-  //     const command = new GetCommand({
-  //         TableName: "Users",
-  //         Key: {
-  //             'email': username,
-  //         },
-  //     });
+    const scanParams = {
+        TableName: 'Product',
+        Limit: 30,
+      };
 
-  //     try {
-  //         const response = await dynamoDB.send(command);
-  //         return response.Item; // Return the user data
-  //     } catch (error) {
-  //         console.error('Error retrieving user data from DynamoDB:', error);
-  //         return null;
-  //     }
-  // };
+      const command = new ScanCommand(scanParams);
 
-  // getUserData(username)
-  //     .then(userData => {
-  //         res.render('home.ejs', { 'username': cur_username, 'Item': userData });
-  //     })
-  //     .catch(error => {
-  //         console.error('Error fetching user data:', error);
-  //         res.render('home.ejs', { 'username': cur_username, 'Item': null });
-  //     });
-  
+      try{
+        const response = await dynamoDB.send(command);
+        if(response.Items.length > 0){
+            product_data = response.Items;
+            const plus = response.Items.length % limit !== 0;
+            res.render('home', {'cur_user': cur_user,'limit':limit,'product_data':product_data, 'plus':plus });
+            // res.redirect('/');
+        }
+        else{
+            return res.render('home', { 'cur_user': cur_user, 'limit': limit, 'product_data': product_data, 'plus': false });
+        }
+      }
+      catch (error){
+        res.redirect('/error')
+      }
+
 });
 
 router.get("/profile", (req, res) => {
