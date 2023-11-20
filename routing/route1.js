@@ -6,30 +6,32 @@ const AWS = require('aws-sdk');
 const {
   DynamoDBDocument, GetCommand, PutCommand, ScanCommand
 } = require('@aws-sdk/lib-dynamodb');
+
+const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/client-s3");
 const {
   DynamoDBClient, 
 } = require('@aws-sdk/client-dynamodb');
-const { PutCommand } = require('@aws-sdk/client-s3');
+// const { PutCommand } = require('@aws-sdk/client-s3');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const client = new DynamoDBClient({region:'us-east-1'});
 const dynamoDB = DynamoDBDocument.from(client);
 router.use(bodyParser.urlencoded({extended:false}));
 
-// AWS configuration
-AWS.config.update({
-  accessKeyId:'ASIA3KOLCAFPAEBODSGK',
-  secretAccessKey:'UwjvnAHVjuP6q6tB7o22aeNIpOZRwmimUN6BAYtE',
-  region:'us-east-1',
-
-});
+//AWS configuration
+// AWS.config.update({
+//   accessKeyId:'ASIA3KOLCAFPAEBODSGK',
+//   secretAccessKey:'UwjvnAHVjuP6q6tB7o22aeNIpOZRwmimUN6BAYtE',
+//   region:'us-west-1',
+// });
 
 // AWS S3 configuration
-const s3 = new AWS.S3({
-  accessKeyId: 'your-access-key-id',
-  secretAccessKey: 'your-secret-access-key',
-  region: 'your-region',
-});
+// const s3 = new AWS.S3({
+//   accessKeyId: 'your-access-key-id',
+//   secretAccessKey: 'your-secret-access-key',
+//   region: 'your-region',
+// });
+const s3 = new S3Client({region:'us-east-1'})
 
 // Multer configuration
 const storage = multer.memoryStorage();
@@ -86,10 +88,10 @@ router.get("/register", (req, res) => {
     res.render('register');
 })
 
-router.post("/register",upload.single('profilePicture'), async (req, res) => {
+router.post("/register",upload.single('profilePictureInput'), async (req, res) => {
   const username = req.body.register_username.toLowerCase();
   const email = req.body.register_Email;
-  const password = req.body.login_password;
+  const password = req.body.register_Password;
   const fname = req.body.register_firstName;
   const lname = req.body.register_lastName;
   const address = req.body.register_address;
@@ -105,6 +107,7 @@ router.post("/register",upload.single('profilePicture'), async (req, res) => {
 
   try {
       const responseEmail = await dynamoDB.send(command_email);
+      console.log("Send");
 
       if (responseEmail && responseEmail.Item) {
           res.render('register', { 'existed_email': true });
@@ -118,21 +121,26 @@ router.post("/register",upload.single('profilePicture'), async (req, res) => {
 
           const command_username = new ScanCommand(params_username);
           const responseUsername = await dynamoDB.send(command_username);
+          console.log("Send2");
 
           if ( responseUsername.Count != 0) {
               res.render('register', { 'existed_username': true });
           } else {
 
+
               const uploadS3 = {
-                Bucket: 'web-otop',
-                Key: `profile-pictures/${uuidv4()}.jpg`, 
-                Body: req.file.buffer,
-                ContentType: 'image/jpeg', 
+                "Bucket": 'web-otop-jiji',
+                "Key": `profile-pictures/${uuidv4()}.jpg`, 
+                "Body": req.file.buffer,
+                "ContentType": 'image/jpeg', 
               };
 
               try{
-                const uploadResponse = await s3.send(new PutCommand(uploadS3));
-                const s3Url = `https://${params.Bucket}.s3.${s3.config.region}.amazonaws.com/${params.Key}`;
+                const command = new PutObjectCommand(uploadS3);
+                const uploadResponse = await s3.send(command);
+                // const uploadResponse = await s3.send(new PutCommand(uploadS3));
+                // const s3Url = `https://${params.Bucket}.s3.${s3.config.region}.amazonaws.com/${params.Key}`;
+                const s3Url = `https://web-otop-jiji.s3.amazonaws.com/${uploadS3.Key}`;
                 const input = {
                   TableName: "Users",
                   Item: {
@@ -141,7 +149,7 @@ router.post("/register",upload.single('profilePicture'), async (req, res) => {
                       password: password,
                       firstName: fname,
                       lastName: lname,
-                      address : address,
+                      address : address, 
                       profile_pic: s3Url,
                   },
                 };
@@ -163,6 +171,7 @@ router.post("/register",upload.single('profilePicture'), async (req, res) => {
                 res.redirect('/home');
               }
               catch(error){
+                console.log(error)
                 res.render('register',{'error3':true});
               }
           }
