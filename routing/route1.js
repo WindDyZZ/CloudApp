@@ -3,17 +3,25 @@ const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const AWS = require('aws-sdk');
-const {
-  DynamoDBDocument, GetCommand, PutCommand, ScanCommand
-} = require('@aws-sdk/lib-dynamodb');
-const {
-  DynamoDBClient, 
-} = require('@aws-sdk/client-dynamodb');
 const { PutCommand } = require('@aws-sdk/client-s3');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
+
+// Lib DB
+const {
+  DynamoDBDocument, GetCommand, PutCommand, ScanCommand
+} = require('@aws-sdk/lib-dynamodb');
+
+// DB Client
+const {
+  DynamoDBClient, 
+} = require('@aws-sdk/client-dynamodb');
+
+// DB configure
 const client = new DynamoDBClient({region:'us-east-1'});
 const dynamoDB = DynamoDBDocument.from(client);
+
+// Router configure
 router.use(bodyParser.urlencoded({extended:false}));
 
 // AWS configuration
@@ -38,6 +46,9 @@ const upload = multer({ storage: storage });
 // Assign global var username
 let cur_user = '';
 
+
+
+// Login -----------------------------------------------------
 router.get('/',(req,res)=>{
   res.render('login');
 })
@@ -81,7 +92,8 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Register
+// Register -----------------------------------------------------
+
 router.get("/register", (req, res) => {
     res.render('register');
 })
@@ -174,11 +186,14 @@ router.post("/register",upload.single('profilePicture'), async (req, res) => {
 
 });
 
+// Index -----------------------------------------------------
 
 router.get("/index", (req, res) => {
     const name = "Win";
     res.render('index.ejs', { name: name });
 })
+
+// Home -----------------------------------------------------
 
 router.get("/home", (req, res) => {
 
@@ -218,6 +233,8 @@ router.get("/home", (req, res) => {
   
 });
 
+
+// Profile -----------------------------------------------------
 router.get("/profile", (req, res) => {
   if (Object.keys(cur_user).length === 0) {
     res.redirect('/');
@@ -226,6 +243,8 @@ router.get("/profile", (req, res) => {
 }
 })
 
+
+// Shop -----------------------------------------------------
 router.get("/myshop", (req, res) => {
   if (Object.keys(cur_user).length === 0) {
     res.redirect('/');
@@ -234,10 +253,14 @@ router.get("/myshop", (req, res) => {
 }
 })
 
+
+// Add Product -----------------------------------------------------
 router.get("/add_product", (req, res) => {
     res.render('add_product');
 })
 
+
+// Cart -----------------------------------------------------
 router.get("/cart", (req, res) => {
     const Products = [
         { product_name: "silk", image: "img/ex-product.png", price: 1000, description: "" },
@@ -247,7 +270,7 @@ router.get("/cart", (req, res) => {
 });
 
 
-
+// History -----------------------------------------------------
 router.get("/history", (req, res) => {
     const status = req.query.stt;
     const user = {
@@ -297,6 +320,8 @@ router.get("/history", (req, res) => {
     res.render('history.ejs', {product:product})
 })
 
+
+// Logout -----------------------------------------------------
 router.get('/logout', (req,res)=>{
   cur_username = '';
   res.redirect('/');
