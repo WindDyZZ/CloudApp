@@ -19,7 +19,7 @@ AWS.config.update({
 
 });
 // assign global var username
-let cur_username = '';
+let cur_user = '';
 
 router.get('/',(req,res)=>{
   res.render('login');
@@ -53,7 +53,7 @@ router.post("/", async (req, res) => {
   if (data && data.Item) {
       console.log('Stored password:', data.Item.password);
       if (password === data.Item.password.toLowerCase()) {
-          cur_username = username;
+        cur_user = username;
           res.redirect('/home');
       } else {
           res.render('login', { 'wrong_pass': true });
@@ -73,6 +73,9 @@ router.post("/register", async (req, res) => {
   const password = req.body.login_password;
   const fname = req.body.register_firstName;
   const lname = req.body.register_lastName;
+  const address = req.body.register_address;
+
+  
 
   const params_email = {
       TableName: 'Users',
@@ -90,19 +93,18 @@ router.post("/register", async (req, res) => {
           res.render('register', { 'existed_email': true });
       } else {
           const params_username = {
-              TableName: 'Users',
-              Key: {
-                'email': email,
-              },
+            TableName: 'Users',
+            FilterExpression: '#username =  :u' ,
+            ExpressionAttributeNames:{'#username' : 'username'},
+            ExpressionAttributeValues: {':u' : username}
           };
 
-          const command_username = new GetCommand(params_username);
+          const command_username = new ScanCommand(params_username);
           const responseUsername = await dynamoDB.send(command_username);
 
-          if (responseUsername && responseUsername.Item) {
+          if ( responseUsername.Count != 0) {
               res.render('register', { 'existed_username': true });
           } else {
-              // Add a new user to the DynamoDB table
               const input = {
                   TableName: "Users",
                   Item: {
@@ -111,19 +113,50 @@ router.post("/register", async (req, res) => {
                       password: password,
                       firstName: fname,
                       lastName: lname,
+                      address : address,
                   },
               };
 
               const putCommand = new PutCommand(input);
               await dynamoDB.send(putCommand);
-
-              res.render('register', { 'success': true });
+              // res.render('register', { 'success': true });
+              cur_user = {
+                username: response.Item.username.S,
+                email: response.Item.email.S,
+                password: response.Item.password.S,
+                firstName: response.Item.firstname.S,
+                lastName: response.Item.lastname.S,
+                address: response.Item.address.S,
+            };
+              res.redirect('/home');
           }
       }
   } catch (error) {
       console.error('Error getting item from DynamoDB:', error);
       res.render('register', { 'error1': true });
   }
+  // const params_username = {
+  //   TableName: 'Users',
+  //   FilterExpression: '#username =  :u' ,
+  //   ExpressionAttributeNames:{'#username' : 'username'},
+  //   ExpressionAttributeValues: {':u' : username}
+  // };
+
+  // const command_username = new ScanCommand(params_username);
+  // try{
+  //   const response = await dynamoDB.send(command_username);
+    
+  //   if(response.Count != 0){
+  //     res.render('register',{'existed_username':true});
+  //   }
+  //   else{
+  //     res.render('register',{'success':true});
+  //   }
+    
+  // }
+  // catch (error){
+  //   res.render('register',{'error1':true});
+  // }
 });
 
 
@@ -133,42 +166,57 @@ router.get("/index", (req, res) => {
 })
 
 router.get("/home", (req, res) => {
-  const username = cur_username;
 
-  // Fetch user data from DynamoDB using the username
-  const getUserData = async (username) => {
-      const command = new GetCommand({
-          TableName: "Users",
-          Key: {
-              'email': username,
-          },
-      });
+  if (Object.keys(cur_user).length === 0) {
+    res.redirect('/');
+} else {
+    res.render('home', {'cur_user': cur_user });
+}
+  // const username = cur_username;
 
-      try {
-          const response = await dynamoDB.send(command);
-          return response.Item; // Return the user data
-      } catch (error) {
-          console.error('Error retrieving user data from DynamoDB:', error);
-          return null;
-      }
-  };
+  // // Fetch user data from DynamoDB using the username
+  // const getUserData = async (username) => {
+  //     const command = new GetCommand({
+  //         TableName: "Users",
+  //         Key: {
+  //             'email': username,
+  //         },
+  //     });
 
-  getUserData(username)
-      .then(userData => {
-          res.render('home.ejs', { 'username': cur_username, 'Item': userData });
-      })
-      .catch(error => {
-          console.error('Error fetching user data:', error);
-          res.render('home.ejs', { 'username': cur_username, 'Item': null });
-      });
+  //     try {
+  //         const response = await dynamoDB.send(command);
+  //         return response.Item; // Return the user data
+  //     } catch (error) {
+  //         console.error('Error retrieving user data from DynamoDB:', error);
+  //         return null;
+  //     }
+  // };
+
+  // getUserData(username)
+  //     .then(userData => {
+  //         res.render('home.ejs', { 'username': cur_username, 'Item': userData });
+  //     })
+  //     .catch(error => {
+  //         console.error('Error fetching user data:', error);
+  //         res.render('home.ejs', { 'username': cur_username, 'Item': null });
+  //     });
+  
 });
 
 router.get("/profile", (req, res) => {
-    res.render('profile',{'username':cur_username});
+  if (Object.keys(cur_user).length === 0) {
+    res.redirect('/');
+} else {
+    res.render('profile', {'cur_user': cur_user });
+}
 })
 
 router.get("/myshop", (req, res) => {
-    res.render('myshop');
+  if (Object.keys(cur_user).length === 0) {
+    res.redirect('/');
+} else {
+    res.render('myshop', {'cur_user': cur_user });
+}
 })
 
 router.get("/add_product", (req, res) => {
