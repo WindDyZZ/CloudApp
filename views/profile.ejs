@@ -44,13 +44,13 @@
                 <div class="user-info">
                     <form action="#">
                         <div class="username">
-                            <label for="username"><%= cur_username.username %></label>
-                            <input type="text" name="username" value="Username" readonly>
+                            <label for="username">Username</label>
+                            <input type="text" name="username" value="<%= cur_user.username %>" readonly>
                             <a href="#">Change</a>
                         </div>
                         <div class="user-email">
-                            <label for="user-email"><%= cur_username.email %></label>
-                            <input type="text" name="user-email" value="UserEmail" readonly>
+                            <label for="user-email">UserEmail</label>
+                            <input type="text" name="user-email" value="<%= cur_user.email %>" readonly>
                             <a href="#">Change</a>
                         </div>
                     </form>

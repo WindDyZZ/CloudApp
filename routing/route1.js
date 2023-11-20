@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const AWS = require('aws-sdk');
-const { PutCommand } = require('@aws-sdk/client-s3');
+// const { PutCommand } = require('@aws-sdk/client-s3');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 
@@ -26,17 +26,17 @@ router.use(bodyParser.urlencoded({extended:false}));
 
 // AWS configuration
 AWS.config.update({
-  accessKeyId:'ASIA3KOLCAFPAEBODSGK',
-  secretAccessKey:'UwjvnAHVjuP6q6tB7o22aeNIpOZRwmimUN6BAYtE',
+  accessKeyId:'ASIA3KOLCAFPJEBI5C5V',
+  secretAccessKey:'4thF9kpiDIC8zsYqxG0w/d3+lsPrwHkLtwS6Ci7e',
   region:'us-east-1',
-
+  
 });
 
 // AWS S3 configuration
 const s3 = new AWS.S3({
-  accessKeyId: 'your-access-key-id',
-  secretAccessKey: 'your-secret-access-key',
-  region: 'your-region',
+  accessKeyId: 'ASIA3KOLCAFPJEBI5C5V',
+  secretAccessKey: '4thF9kpiDIC8zsYqxG0w/d3+lsPrwHkLtwS6Ci7e',
+  region: 'us-east-1',
 });
 
 // Multer configuration
@@ -81,7 +81,14 @@ router.post("/", async (req, res) => {
   if (data && data.Item) {
       console.log('Stored password:', data.Item.password);
       if (password === data.Item.password.toLowerCase()) {
-        cur_user = username;
+        cur_user = {
+          username: data.Item.email,
+          email: data.Item.username,
+          password: data.Item.password,
+          firstName: data.Item.firstName,
+          lastName: data.Item.lastName,
+          address: data.Item.address,
+        };
           res.redirect('/home');
       } else {
           res.render('login', { 'wrong_pass': true });
@@ -98,93 +105,187 @@ router.get("/register", (req, res) => {
     res.render('register');
 })
 
-router.post("/register",upload.single('profilePicture'), async (req, res) => {
+router.post("/register", upload.single('profilePicture'), async (req, res) => {
   const username = req.body.register_username.toLowerCase();
   const email = req.body.register_Email;
-  const password = req.body.login_password;
+  const password = req.body.register_password;
   const fname = req.body.register_firstName;
   const lname = req.body.register_lastName;
   const address = req.body.register_address;
 
   const params_email = {
-      TableName: 'Users',
-      Key: {
-          email: email,
-      },
+    TableName: 'Users',
+    Key: {
+      email: email,
+    },
   };
 
   const command_email = new GetCommand(params_email);
 
   try {
-      const responseEmail = await dynamoDB.send(command_email);
+    const responseEmail = await dynamoDB.send(command_email);
 
-      if (responseEmail && responseEmail.Item) {
-          res.render('register', { 'existed_email': true });
+    if (responseEmail && responseEmail.Item) {
+      res.render('register', { 'existed_email': true });
+    } else {
+      const params_username = {
+        TableName: 'Users',
+        FilterExpression: '#username =  :u',
+        ExpressionAttributeNames: { '#username': 'username' },
+        ExpressionAttributeValues: { ':u': username }
+      };
+
+      const command_username = new ScanCommand(params_username);
+      const responseUsername = await dynamoDB.send(command_username);
+
+      if (responseUsername.Count != 0) {
+        res.render('register', { 'existed_username': true });
       } else {
-          const params_username = {
-            TableName: 'Users',
-            FilterExpression: '#username =  :u' ,
-            ExpressionAttributeNames:{'#username' : 'username'},
-            ExpressionAttributeValues: {':u' : username}
+        try {
+          let profile_pic;  // Placeholder for the profile picture URL
+
+          // Check if req.file is available before trying to access req.file.buffer
+          if (req.file) {
+            const uploadS3 = {
+              Bucket: 'web-otop',
+              Key: `profile-pictures/${uuidv4()}.jpg`,
+              Body: req.file.buffer,
+              ContentType: 'image/jpeg',
+            };
+
+            const uploadResponse = await s3.send(new PutCommand(uploadS3));
+            profile_pic = `https://${uploadResponse.Bucket}.s3.${s3.config.region}.amazonaws.com/${uploadResponse.Key}`;
+          }
+
+          const input = {
+            TableName: "Users",
+            Item: {
+              email: email,
+              username: username,
+              password: password,
+              firstName: fname,
+              lastName: lname,
+              address: address,
+              profile_pic: profile_pic,
+            },
           };
 
-          const command_username = new ScanCommand(params_username);
-          const responseUsername = await dynamoDB.send(command_username);
+          try {
+            const putCommand = new PutCommand(input);
+            await dynamoDB.send(putCommand);
 
-          if ( responseUsername.Count != 0) {
-              res.render('register', { 'existed_username': true });
-          } else {
+            cur_user = {
+              username: email,
+              email: username,
+              password: password,
+              firstName: fname,
+              lastName: lname,
+              address: address,
+            };
 
-              const uploadS3 = {
-                Bucket: 'web-otop',
-                Key: `profile-pictures/${uuidv4()}.jpg`, 
-                Body: req.file.buffer,
-                ContentType: 'image/jpeg', 
-              };
-
-              try{
-                const uploadResponse = await s3.send(new PutCommand(uploadS3));
-                const s3Url = `https://${params.Bucket}.s3.${s3.config.region}.amazonaws.com/${params.Key}`;
-                const input = {
-                  TableName: "Users",
-                  Item: {
-                      email:    email,
-                      username: username,
-                      password: password,
-                      firstName: fname,
-                      lastName: lname,
-                      address : address,
-                      profile_pic: s3Url,
-                  },
-                };
-
-                try{
-                  const putCommand = new PutCommand(input);
-                  await dynamoDB.send(putCommand);
-
-                  cur_user = {
-                    username:  email,
-                    email:     username,
-                    password:  password,
-                    firstName: fname,
-                    lastName:  lname,
-                    address:   address,
-                  };
-                }
-                catch(error){res.render('register',{'error2':true});}   
-                res.redirect('/home');
-              }
-              catch(error){
-                res.render('register',{'error3':true});
-              }
+            res.redirect('/home');
+          } catch (error) {
+            res.render('register', { 'error2': true });
           }
+        } catch (error) {
+          res.render('register', { 'error3': true });
+        }
       }
+    }
   } catch (error) {
-      console.error('Error getting item from DynamoDB:', error);
-      res.render('register', { 'error1': true });
+    console.error('Error getting item from DynamoDB:', error);
+    res.render('register', { 'error1': true });
   }
-
 });
+
+
+// router.post("/register",upload.single('profilePicture'), async (req, res) => {
+//   const username = req.body.register_username.toLowerCase();
+//   const email = req.body.register_Email;
+//   const password = req.body.register_password;
+//   const fname = req.body.register_firstName;
+//   const lname = req.body.register_lastName;
+//   const address = req.body.register_address;
+
+//   const params_email = {
+//       TableName: 'Users',
+//       Key: {
+//           email: email,
+//       },
+//   };
+
+//   const command_email = new GetCommand(params_email);
+
+//   try {
+//       const responseEmail = await dynamoDB.send(command_email);
+
+//       if (responseEmail && responseEmail.Item) {
+//           res.render('register', { 'existed_email': true });
+//       } else {
+//           const params_username = {
+//             TableName: 'Users',
+//             FilterExpression: '#username =  :u' ,
+//             ExpressionAttributeNames:{'#username' : 'username'},
+//             ExpressionAttributeValues: {':u' : username}
+//           };
+
+//           const command_username = new ScanCommand(params_username);
+//           const responseUsername = await dynamoDB.send(command_username);
+
+//           if ( responseUsername.Count != 0) {
+//               res.render('register', { 'existed_username': true });
+//           } else {
+
+//               // const uploadS3 = {
+//               //   Bucket: 'web-otop',
+//               //   Key: `profile-pictures/${uuidv4()}.jpg`, 
+//               //   Body: req.file.buffer,
+//               //   ContentType: 'image/jpeg', 
+//               // };
+
+//               try{
+//                 const uploadResponse = await s3.send(new PutCommand(uploadS3));
+//                 const s3Url = `https://${params.Bucket}.s3.${s3.config.region}.amazonaws.com/${params.Key}`;
+//                 const input = {
+//                   TableName: "Users",
+//                   Item: {
+//                       email:    email,
+//                       username: username,
+//                       password: password,
+//                       firstName: fname,
+//                       lastName: lname,
+//                       address : address,
+//                       profile_pic: s3Url,
+//                   },
+//                 };
+
+//                 try{
+//                   const putCommand = new PutCommand(input);
+//                   await dynamoDB.send(putCommand);
+
+//                   cur_user = {
+//                     username:  email,
+//                     email:     username,
+//                     password:  password,
+//                     firstName: fname,
+//                     lastName:  lname,
+//                     address:   address,
+//                   };
+//                 }
+//                 catch(error){res.render('register',{'error2':true});}   
+//                 res.redirect('/home');
+//               }
+//               catch(error){
+//                 res.render('register',{'error3':true});
+//               }
+//           }
+//       }
+//   } catch (error) {
+//       console.error('Error getting item from DynamoDB:', error);
+//       res.render('register', { 'error1': true });
+//   }
+
+// });
 
 // Index -----------------------------------------------------
 
@@ -258,6 +359,50 @@ router.get("/myshop", (req, res) => {
 router.get("/add_product", (req, res) => {
     res.render('add_product');
 })
+
+router.post("/add_product", async (req, res) => {
+  try {
+    // Ensure user is authenticated
+    if (!cur_user) {
+      console.log("User not authenticated");
+      return res.redirect("/login"); // Adjust the login route as needed
+    }
+
+    // Use cur_user data for the product
+    const username = cur_user.email; // Adjust accordingly based on your data structure
+    console.log('Username:', username);
+
+    const productName = req.body.product_name;
+    const price = Number(req.body.price);
+    const productProvince = req.body.province;
+    const productId = `${Date.now()}_${uuidv4()}`;
+    console.log('Generated Product ID:', productId);
+
+    // Now use the retrieved username as the userID in the Products table
+    const input = {
+      TableName: "Product",
+      Item: {
+        userID: username, // Using the retrieved username as the userID
+        productID: productId,
+        product_name: productName,
+        price: price,
+        province: productProvince,
+        // Add other product details as needed...
+      },
+    };
+
+    const putCommand = new PutCommand(input);
+    await dynamoDB.send(putCommand);
+
+    // Redirect or respond as needed
+    res.render("add_product", { success: true, username: username, productId: productId });
+
+  } catch (error) {
+    console.error("Error adding product to DynamoDB:", error);
+    res.render("add_product", { error: true });
+  }
+});
+
 
 
 // Cart -----------------------------------------------------
