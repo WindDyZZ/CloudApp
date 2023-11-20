@@ -63,6 +63,7 @@ router.post("/", async (req, res) => {
       res.render('login', { 'wrong_pass': true });
   }
 });
+
 router.get("/register", (req, res) => {
     res.render('register');
 })
@@ -74,8 +75,6 @@ router.post("/register", async (req, res) => {
   const fname = req.body.register_firstName;
   const lname = req.body.register_lastName;
   const address = req.body.register_address;
-
-  
 
   const params_email = {
       TableName: 'Users',
@@ -108,7 +107,7 @@ router.post("/register", async (req, res) => {
               const input = {
                   TableName: "Users",
                   Item: {
-                      email: email,
+                      email:    email,
                       username: username,
                       password: password,
                       firstName: fname,
@@ -119,15 +118,20 @@ router.post("/register", async (req, res) => {
 
               const putCommand = new PutCommand(input);
               await dynamoDB.send(putCommand);
-              // res.render('register', { 'success': true });
-              cur_user = {
-                username: response.Item.username.S,
-                email: response.Item.email.S,
-                password: response.Item.password.S,
-                firstName: response.Item.firstname.S,
-                lastName: response.Item.lastname.S,
-                address: response.Item.address.S,
-            };
+              try{
+                cur_user = {
+                  username:  email,
+                  email:     username,
+                  password:  password,
+                  firstName: fname,
+                  lastName:  lname,
+                  address:   address,
+                };
+              }
+              catch(error){
+                res.render('register',{'error2':true});
+              }
+              
               res.redirect('/home');
           }
       }
@@ -135,28 +139,7 @@ router.post("/register", async (req, res) => {
       console.error('Error getting item from DynamoDB:', error);
       res.render('register', { 'error1': true });
   }
-  // const params_username = {
-  //   TableName: 'Users',
-  //   FilterExpression: '#username =  :u' ,
-  //   ExpressionAttributeNames:{'#username' : 'username'},
-  //   ExpressionAttributeValues: {':u' : username}
-  // };
 
-  // const command_username = new ScanCommand(params_username);
-  // try{
-  //   const response = await dynamoDB.send(command_username);
-    
-  //   if(response.Count != 0){
-  //     res.render('register',{'existed_username':true});
-  //   }
-  //   else{
-  //     res.render('register',{'success':true});
-  //   }
-    
-  // }
-  // catch (error){
-  //   res.render('register',{'error1':true});
-  // }
 });
 
 
