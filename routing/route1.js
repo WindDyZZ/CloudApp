@@ -1,4 +1,5 @@
 // import requirment
+require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
@@ -9,38 +10,58 @@ const {
 const {
   DynamoDBClient, 
 } = require('@aws-sdk/client-dynamodb');
-const client = new DynamoDBClient({region:'us-east-1'});
-const dynamoDB = DynamoDBDocument.from(client);
+// const client = new DynamoDBClient({region:'us-east-1'});
+// const dynamoDB = DynamoDBDocument.from(client);
+
+const {ACCESS_KEY, SECRET_KEY, SESSION_TOKEN} = process.env;
+console.log("key", ACCESS_KEY);
 router.use(bodyParser.urlencoded({extended:false}));
 AWS.config.update({
-  accessKeyId:'ASIA3KOLCAFPAEBODSGK',
-  secretAccessKey:'UwjvnAHVjuP6q6tB7o22aeNIpOZRwmimUN6BAYtE',
-  region:'us-east-1',
+  accessKeyId: ACCESS_KEY,
+  secretAccessKey: SECRET_KEY,
+  sessionToken: SESSION_TOKEN,
+  region:'us-east-1', 
 
 });
+
+const dynamoDB = new AWS.DynamoDB.DocumentClient({convertEmptyValues: true})
 // assign global var username
 let cur_user = '';
+
+//-----------------------------------Start Login----------------------------------------------
+
 
 router.get('/',(req,res)=>{
   res.render('login');
 })
 
 router.post("/", async (req, res) => {
-  const username = req.body.login_username.toLowerCase();
+//   const username = req.body.login_username.toLowerCase();
+  const email = req.body.login_email;
   const password = req.body.login_password;
 
-  console.log('Entered username:', username);
+  console.log('Entered username:', email);
 
   const get_data = async () => {
-      const command = new GetCommand({
-          TableName: "Users",
-          Key: {
-              'email': username,
-          },
-      });
+    //   const command = new GetCommand({
+    //       TableName: "Users",
+    //       Key: {
+    //           'email': email,
+    //       },
+    //   });
+
+    const params = {
+        TableName: 'Users',
+        Key: {
+            email,
+        },
+      };
+
 
       try {
-          const response = await dynamoDB.send(command);
+          const response = await dynamoDB.get(params).promise();
+          console.log(response)
+
           return response;
       } catch (error) {
           console.error('Error retrieving item from DynamoDB:', error);
@@ -50,10 +71,11 @@ router.post("/", async (req, res) => {
 
   const data = await get_data();
 
-  if (data && data.Item) {
+  if (Object.keys(data).length != 0) {
       console.log('Stored password:', data.Item.password);
       if (password === data.Item.password.toLowerCase()) {
-        cur_user = username;
+        // cur_user = username;
+        cur_user = email;
           res.redirect('/home');
       } else {
           res.render('login', { 'wrong_pass': true });
@@ -64,6 +86,12 @@ router.post("/", async (req, res) => {
   }
 });
 
+
+//-----------------------------------End Login----------------------------------------------
+
+
+//-----------------------------------Start Register----------------------------------------------
+
 router.get("/register", (req, res) => {
     res.render('register');
 })
@@ -71,7 +99,7 @@ router.get("/register", (req, res) => {
 router.post("/register", async (req, res) => {
   const username = req.body.register_username.toLowerCase();
   const email = req.body.register_Email;
-  const password = req.body.login_password;
+  const password = req.body.register_Password;
   const fname = req.body.register_firstName;
   const lname = req.body.register_lastName;
   const address = req.body.register_address;
@@ -83,25 +111,29 @@ router.post("/register", async (req, res) => {
       },
   };
 
-  const command_email = new GetCommand(params_email);
+//   const command_email = new GetCommand(params_email);
 
   try {
-      const responseEmail = await dynamoDB.send(command_email);
+      const responseEmail = await dynamoDB.get(params_email).promise();
 
-      if (responseEmail && responseEmail.Item) {
+      if (Object.keys(responseEmail).length != 0) {
           res.render('register', { 'existed_email': true });
       } else {
           const params_username = {
             TableName: 'Users',
-            FilterExpression: '#username =  :u' ,
-            ExpressionAttributeNames:{'#username' : 'username'},
-            ExpressionAttributeValues: {':u' : username}
+            // FilterExpression: '#username =  :u' ,
+            // ExpressionAttributeNames:{'#username' : 'username'},
+            // ExpressionAttributeValues: {':u' : username}
+            Key: {
+                email,
+            },
           };
 
-          const command_username = new ScanCommand(params_username);
-          const responseUsername = await dynamoDB.send(command_username);
+        //   const command_username = new ScanCommand(params_username);
+          const responseUsername = await dynamoDB.get(params_username).promise();
+          console.log('responseUsername', responseUsername)
 
-          if ( responseUsername.Count != 0) {
+          if ( Object.keys(responseUsername).length != 0) {
               res.render('register', { 'existed_username': true });
           } else {
               const input = {
@@ -116,8 +148,8 @@ router.post("/register", async (req, res) => {
                   },
               };
 
-              const putCommand = new PutCommand(input);
-              await dynamoDB.send(putCommand);
+            //   const putCommand = new PutCommand(input);
+              await dynamoDB.put(input).promise();
               try{
                 cur_user = {
                   username:  email,
@@ -132,7 +164,7 @@ router.post("/register", async (req, res) => {
                 res.render('register',{'error2':true});
               }
               
-              res.redirect('/home');
+              res.redirect('/');
           }
       }
   } catch (error) {
@@ -141,6 +173,8 @@ router.post("/register", async (req, res) => {
   }
 
 });
+
+//-----------------------------------End Register----------------------------------------------
 
 
 router.get("/index", (req, res) => {
