@@ -24,8 +24,8 @@
         </div>
         <div class="cart">
             <div class="all-item">
-                <input type="checkbox" id="items" name="items" value="all-item">
-                <label for="items"> All items</label><br>
+                <input type="checkbox" id="all-items" name="all-items" value="all-item">
+                <label for="all-items"> All items</label><br>
             </div>
         </div>
         <!-- product 1 -->
@@ -35,15 +35,9 @@
                 totalPrice += Products[i].price; 
         %>
             <div class="in-cart">            
-                <input class="checkbox" type="checkbox" id="items" name="items" value="#">
-                <img class="item-img" src="<%= Products[i].image %>" alt="">
+                <input class="checkbox" type="checkbox" id="<%= 'item' + i %>" name="items" value="#">                <img class="item-img" src="<%= Products[i].image %>" alt="">
                 <div class="item">
                     <a href="#"><%= Products[i].product_name %></a>
-                    <select class="custom-select" name="color" id="color">
-                        <option value="large">Large</option>
-                        <option value="medium">medium</option>
-                        <option value="small">small</option>
-                    </select>
                     <p><span>฿<%= Products[i].price %></span></p>
                 </div>
                 <div class="quantity">
@@ -68,6 +62,27 @@
             <h2> Total Price: <span> ฿<%= totalPrice %></span> </h2>
             <button class="checkout-btn">Checkout</button>
         </div>
-    </div>   
+    </div>  
+    <script>
+        
+        const allItemsCheckbox = document.getElementById('all-items');
+        const itemCheckboxes = document.querySelectorAll('.checkbox');
+
+        allItemsCheckbox.addEventListener('change', function () {
+            itemCheckboxes.forEach(checkbox => {
+                checkbox.checked = allItemsCheckbox.checked;
+            });
+        });
+        itemCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                if (!checkbox.checked) {
+                    allItemsCheckbox.checked = false;
+                } else {
+                    const allChecked = Array.from(itemCheckboxes).every(cb => cb.checked);
+                    allItemsCheckbox.checked = allChecked;
+                }
+            });
+        });
+    </script>
 </body>
 </html>

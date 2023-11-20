@@ -9,11 +9,8 @@ const multer = require('multer');
 
 // Lib DB
 const {
-  DynamoDBDocument, GetCommand, PutCommand, ScanCommand
+  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, QueryCommand, DeleteCommand
 } = require('@aws-sdk/lib-dynamodb');
-
-const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/client-s3");
-const s3 = new S3Client({region:'us-east-1'})
 
 // DB Client
 const {
@@ -28,19 +25,19 @@ const dynamoDB = DynamoDBDocument.from(client);
 router.use(bodyParser.urlencoded({extended:false}));
 
 // AWS configuration
-// AWS.config.update({
-//   accessKeyId:'ASIA3KOLCAFPJEBI5C5V',
-//   secretAccessKey:'4thF9kpiDIC8zsYqxG0w/d3+lsPrwHkLtwS6Ci7e',
-//   region:'us-east-1',
+AWS.config.update({
+  accessKeyId:'ASIA3KOLCAFPJEBI5C5V',
+  secretAccessKey:'4thF9kpiDIC8zsYqxG0w/d3+lsPrwHkLtwS6Ci7e',
+  region:'us-east-1',
   
-// });
+});
 
-// // AWS S3 configuration
-// const s3 = new AWS.S3({
-//   accessKeyId: 'ASIA3KOLCAFPJEBI5C5V',
-//   secretAccessKey: '4thF9kpiDIC8zsYqxG0w/d3+lsPrwHkLtwS6Ci7e',
-//   region: 'us-east-1',
-// });
+// AWS S3 configuration
+const s3 = new AWS.S3({
+  accessKeyId: 'ASIA3KOLCAFPJEBI5C5V',
+  secretAccessKey: '4thF9kpiDIC8zsYqxG0w/d3+lsPrwHkLtwS6Ci7e',
+  region: 'us-east-1',
+});
 
 // Multer configuration
 const storage = multer.memoryStorage();
@@ -348,14 +345,83 @@ router.get("/profile", (req, res) => {
 })
 
 
-// Shop -----------------------------------------------------
-router.get("/myshop", (req, res) => {
-  if (Object.keys(cur_user).length === 0) {
-    res.redirect('/');
-} else {
-    res.render('myshop', {'cur_user': cur_user });
-}
-})
+//My Shop -----------------------------------------------------
+
+router.get("/myshop", async (req, res) => {
+  try {
+    if (!cur_user) {
+      console.log("User not authenticated");
+      return res.redirect("/"); 
+    }
+
+    const username = cur_user.email; 
+
+    const query = {
+      TableName: "Product",
+      KeyConditionExpression: "userID = :username",
+      ExpressionAttributeValues: {
+        ":username": username,
+      },
+    };
+
+    const queryCommand = new QueryCommand(query);
+    const result = await dynamoDB.send(queryCommand);
+
+    const products = result.Items || [];
+
+    res.render("myshop", { products, username });
+
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.render("myshop", { error: true });
+  }
+});
+//My Shop Delete product--------------------------------------
+// router.post("/myshop/delete", async (req, res) => {
+//   try {
+//     if (!cur_user) {
+//       console.log("User not authenticated");
+//       return res.redirect("/"); // Adjust the login route as needed
+//     }
+
+//     const productIdsToDelete = req.body.productIds; // Use "productIds" instead of "productId"
+
+//     // Log the value of productIdsToDelete
+//     console.log('productIdsToDelete:', productIdsToDelete);
+
+//     // Ensure productIdsToDelete is an array
+//     const productIdsArray = [].concat(productIdsToDelete);
+
+//     for (const productIdToDelete of productIdsArray) {
+//       console.log('Deleting product with ID:', productIdToDelete);
+      
+//       // Split the productId into username and productID
+//       const [userID, productID] = productIdToDelete.split(',');
+
+//       console.log('Deleting product with userID and productID:', userID, productID);
+
+//       const deleteParams = {
+//         TableName: "Product",
+//         Key: {
+//           userID: { S: userID }, // Assuming userID is of type String
+//           productID: { S: productID }, // Assuming productID is of type String
+//         },
+//       };
+
+//       const deleteCommand = new DeleteCommand(deleteParams);
+//       await dynamoDB.send(deleteCommand);
+
+//       console.log('Product deleted successfully');
+//     }
+
+//     res.redirect("/myshop");
+//   } catch (error) {
+//     console.error("Error deleting product:", error);
+//     res.render("error", { error: true });
+//   }
+// });
+
+
 
 
 // Add Product -----------------------------------------------------
@@ -363,26 +429,17 @@ router.get("/add_product", (req, res) => {
     res.render('add_product');
 })
 
-router.post("/add_product",upload.single('product_image'), async (req, res) => {
+router.post("/add_product", async (req, res) => {
   try {
-    // // Ensure user is authenticated
+
     if (!cur_user) {
       console.log("User not authenticated");
       return res.redirect("/"); // Adjust the login route as needed
     }
 
     // Use cur_user data for the product
-    const username = cur_user.email;; // Adjust accordingly based on your data structure
+    const username = cur_user.email; // Adjust accordingly based on your data structure
     console.log('Username:', username);
-    console.log(req.data);
-
-    const uploadS3 = {
-      "Bucket": 'web-otop-jiji',
-      "Key": `product-pictures/${uuidv4()}.jpg`, 
-      "Body": req.file.buffer,
-      "ContentType": 'image/jpeg', 
-    };
-
 
     const productName = req.body.product_name;
     const price = Number(req.body.price);
@@ -391,9 +448,6 @@ router.post("/add_product",upload.single('product_image'), async (req, res) => {
     console.log('Generated Product ID:', productId);
 
     // Now use the retrieved username as the userID in the Products table
-    const command = new PutObjectCommand(uploadS3);
-    const uploadResponse = await s3.send(command);
-    const s3Url = `https://web-otop-jiji.s3.amazonaws.com/${uploadS3.Key}`;
     const input = {
       TableName: "Product",
       Item: {
@@ -402,7 +456,6 @@ router.post("/add_product",upload.single('product_image'), async (req, res) => {
         product_name: productName,
         price: price,
         province: productProvince,
-        pic_url: s3Url
         // Add other product details as needed...
       },
     };
@@ -418,6 +471,8 @@ router.post("/add_product",upload.single('product_image'), async (req, res) => {
     res.render("add_product", { error: true });
   }
 });
+
+
 
 // Cart -----------------------------------------------------
 router.get("/cart", (req, res) => {
@@ -485,37 +540,6 @@ router.get('/logout', (req,res)=>{
   cur_username = '';
   res.redirect('/');
 })
-
-// My shop ----------------------------------------------------
-router.get("/myshop", async (req, res) => {
-  try {
-    if (!cur_user) {
-      console.log("User not authenticated");
-      return res.redirect("/"); 
-    }
-
-    const username = cur_user.email; 
-
-    const query = {
-      TableName: "Product",
-      KeyConditionExpression: "userID = :username",
-      ExpressionAttributeValues: {
-        ":username": username,
-      },
-    };
-
-    const queryCommand = new QueryCommand(query);
-    const result = await dynamoDB.send(queryCommand);
-
-    const products = result.Items || [];
-
-    res.render("myshop", { products, username });
-
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    res.render("myshop", { error: true });
-  }
-});
 
 
 module.exports = router

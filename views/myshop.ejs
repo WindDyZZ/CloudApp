@@ -48,28 +48,60 @@
                     </button>
                 </div>
                 <hr>
-                <% for (let i = 0; i < products.length; i++) { %> 
+                <% for (let i = 0; i < products.length; i++) { %>  
                 <div class="in-cart">       
-                      
+                     
                         <input class="checkbox" type="checkbox" id="<%= 'item' + i %>" name="items" value="<%= products[i].username + ',' + products[i].productID %>">
                     <div class="item">
                         <p class="item_name">
                             <a href="#"><%= products[i].product_name %></a>
                         </p>
                         <p class="item_price">
-                            <%= 'à¸¿' + products[i].price %>
+                            <%= '฿' + products[i].price %>
                         </p>
                         
                     </div>
                     <span><a href="#">Detail >>>></a></span>
                 </div>
                 <hr>
-                <% } %>
+                
             </div>
-
+            <% } %>
         </div>
     </div>
     
     
 </body>
+<!-- <script>
+    async function handleDeleteClick() {
+    // Get all checked checkboxes
+    const checkboxes = document.querySelectorAll('.checkbox:checked');
+    
+    // Extract product IDs from the checked checkboxes
+    const selectedProductIds = Array.from(checkboxes).map(checkbox => checkbox.value);
+
+    // Log the selectedProductIds
+    console.log('selectedProductIds:', selectedProductIds);
+
+    // Send a POST request to the server with the selected product IDs
+    const response = await fetch('/myshop/delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productIds: selectedProductIds }), // Use "productIds" instead of "productId"
+    });
+
+    // Check if the request was successful
+    if (response.ok) {
+        // Redirect or update the UI as needed
+        window.location.href = '/myshop';
+    } else {
+        // Handle errors
+        console.error('Error deleting products');
+    }
+}
+
+</script> -->
 </html>
+
