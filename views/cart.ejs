@@ -29,33 +29,23 @@
             </div>
         </div>
         <!-- product 1 -->
-        <% 
-            let totalPrice = 0; 
-            for (let i = 0; i < Products.length; i++) { 
-                totalPrice += Products[i].price; 
-        %>
-            <div class="in-cart">            
-                <input class="checkbox" type="checkbox" id="<%= 'item' + i %>" name="items" value="#">                <img class="item-img" src="<%= Products[i].image %>" alt="">
+        <% let totalPrice = 0; %>
+        <% if (Products && Products.length > 0) { %>
+            <!-- Loop through Products only if it's defined and not empty -->
+            <% for (let i = 0; i < Products.length; i++) { %>
+              <div class="in-cart">
+                <input class="checkbox" type="checkbox" id="<%= 'item' + i %>" name="items" value="#">
+                <img class="item-img" src="<%= Products[i].image %>" alt="">
                 <div class="item">
-                    <a href="#"><%= Products[i].product_name %></a>
-                    <p><span>฿<%= Products[i].price %></span></p>
+                  <!-- Display other product details as needed -->
+                  <h3><%= Products[i].product_name %></h3>
+                  <!-- Add more details here -->
                 </div>
-                <div class="quantity">
-                    <div class="trash">
-                        <button class="trash-btn" type="button" name="button">
-                            <img src="img/trash.svg" alt="" />
-                        </button>
-                    </div>
-                    <button class="minus-btn" type="button" name="button">
-                      <img src="img/minus.svg" alt="" />
-                    </button>
-                    <input type="text" name="name" value="1">
-                    <button class="plus-btn" type="button" name="button">
-                      <img src="img/plus.svg" alt="" />
-                    </button>
-                </div>
-            </div>
+              </div>
             <% } %>
+          <% } else { %>
+            <p>Your cart is empty.</p>
+          <% } %>
         <!-- End product 1 -->
 
         <div class="total-box">
