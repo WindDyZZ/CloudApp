@@ -54,12 +54,15 @@
                         <input class="checkbox" type="checkbox" id="<%= 'item' + i %>" name="items" value="<%= username + ',' + products[i].productID + ',' + products[i].product_image, %>">
                     <div class="item">
                         <img width="150" height="150"  style="object-fit: cover; border-radius: 10px; margin-left: 10px; margin-right: 10px;" src=<%= products[i].product_image %>> 
-                        <p class="item_name">
-                            <a href="#"><%= products[i].product_name %></a>
-                        </p>
-                        <p class="item_price">
-                            <%= '฿' + products[i].price %>
-                        </p>
+                        <div id="item-name-price">
+                            <p class="item_name">
+                                <a href="#"><%= products[i].product_name %></a>
+                            </p>
+                            <p class="item_price">
+                                <%= '฿' + products[i].price %>
+                            </p>
+                        </div>
+                        
                         
                     </div>
                     <span><a href="#">Detail >>>></a></span>
