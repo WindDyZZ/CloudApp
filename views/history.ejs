@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style/style.css">
-    <title>Document</title>
 </head>
 
 <body>
@@ -30,6 +29,7 @@
 
             <div class="bar-content">
                 <nav id="history_nav">
+                    <a href="history?stt=all"> All </a>
                     <a href="history?stt=purchased"> Purchased </a>
                     <a href="history?stt=cancel"> Cancel Order </a>
                     <a href="history?stt=refund"> Refunds/Returns </a>
@@ -40,31 +40,38 @@
 
         <div class="content" style="padding-bottom: 20px;" >
             <div class="his-content" >
-                    <% for(const key in product) {%>
+
+                <!-- from DynamoDB -->
+                <% products.forEach(product => { %>
+                    <% console.log(product); %>
                     <div class="product-name">
                         <h4> <span> Suggested </span>
-                            <%= product[key].name %>
+                            <%= product && product.name %>
                         </h4>
                     </div>
 
                     <hr>
 
                     <div class="product-info">
+
+                        <!-- from s3 -->
                         <img class="pd-img" src="img/ex-product.png" alt="">
+                        <!-- <img class="pd-img" 
+                            src="https://otop-test.s3.amazonaws.com/image/product.webp" 
+                            alt=""> -->
 
                         <div class="product-text">
-                            <h4>details: <%= product[key].detail %>
-                            </h4>
-                            <h4>transportation cost : <%= product[key].tp_cost %>
-                            </h4>
-                            <h2>Total Price: <span>
-                                    <%= product[key].total_price %>
-                                </span> </h2>
+                            <h4> details: <%= product.detail %> </h4>
+                            <h4> transportation cost : <%= product.tp_cost %> </h4>
+                            <h4> product price : <%= product.price %> </h4>
+                            <h2> Total Price: 
+                                <%= parseFloat(product.tp_cost) + parseFloat(product.price) %>
+                            </h2>
                         </div>
 
                     </div>
-                    <button class="button-1">Buy Again </button>
-                    <% } %>
+                    <button class="button-1"> Buy Again </button>
+                    <% }); %>
                 </div>
         </div>
 
@@ -74,5 +81,3 @@
 
 </html>
 
-<!-- HTML !-->
-<button class="button-1" role="button">Button 1</button>
