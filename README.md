@@ -14,9 +14,13 @@ For DES424 Cloud-based Application Development
 * 6322775003 	Tawin Chianwongrat
 
 ## Local Deployment
+### Prerequisites
+* Node.js
+* AWS account
+### Installation
 * Runserver: npm start
 * Location: localhost:80
-* ### Docker command:
-* * docker image: docker build -t {docker-username}/{name}:{tag} {des}
-* * login: docker login
-* * push: docker push {docker-user}/{img-name}:{tag}
+### Docker command:
+ * docker image: docker build -t {docker-username}/{name}:{tag} {des}
+ * login: docker login
+ * push: docker push {docker-user}/{img-name}:{tag}
