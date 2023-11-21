@@ -1,4 +1,4 @@
-# CloudApp
+# CloudApp G7
 
 This is a final project folder of E-Commerce platform for DES424
 
@@ -9,6 +9,7 @@ This is a final project folder of E-Commerce platform for DES424
 
 ## Command
 * Runserver: npm start
+* Location: localhost:80
 * ### Docker command:
 * * docker image: docker build -t {docker-username}/{name}:{tag} {des}
 * * login: docker login
