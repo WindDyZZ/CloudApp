@@ -176,7 +176,7 @@ router.post("/register", upload.single('profilePictureInput'), async (req, res) 
             const putCommand = new PutCommand(input);
             await dynamoDB.send(putCommand);
 
-            cur_user = {
+            cur_userObj = {
               username: email,
               email: username,
               password: password,
@@ -581,7 +581,7 @@ router.get("/cart", async (req, res) => {
       const command = new GetCommand({
           TableName: "Users",
           Key: {
-              'email': cur_user.email,
+              'email': cur_userObj.email,
           },
       });
 
