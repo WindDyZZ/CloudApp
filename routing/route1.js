@@ -10,11 +10,13 @@ const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/cli
 // Lib DB
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
-const { S3Client, ListBucketsCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+
+router.use(bodyParser.json())
+router.use(bodyParser.urlencoded({ extended: true }))
 
 // Lib DB
 const {
-  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, UpdateCommand
+  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, UpdateCommand, QueryCommand, DeleteCommand
 } = require('@aws-sdk/lib-dynamodb');
 
 
@@ -34,6 +36,7 @@ const s3 = new S3Client({region:'us-east-1'})
 
 // Router configure
 router.use(bodyParser.urlencoded({extended:false}));
+const bucketName = "web-otop"
 
 // Multer configuration
 const storage = multer.memoryStorage();
@@ -101,7 +104,7 @@ router.get("/register", (req, res) => {
   res.render('register');
 })
 
-router.post("/register",upload.single('profilePictureInput'), async (req, res) => {
+router.post("/register", upload.single('profilePictureInput'), async (req, res) => {
   const username = req.body.register_username.toLowerCase();
   const email = req.body.register_Email;
   const password = req.body.register_Password;
@@ -125,7 +128,7 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
       res.render('register', { 'existed_email': true });
     } else {
       const params_username = {
-        TableName: 'user',
+        TableName: 'Users',
         FilterExpression: '#username =  :u',
         ExpressionAttributeNames: { '#username': 'username' },
         ExpressionAttributeValues: { ':u': username }
@@ -138,12 +141,12 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
         res.render('register', { 'existed_username': true });
       } else {
 
-              const uploadS3 = {
-                "Bucket": 'web-otop',
-                "Key": `profile-pictures/${uuidv4()}.jpg`, 
-                "Body": req.file.buffer,
-                "ContentType": 'image/jpeg', 
-              };
+        const uploadS3 = {
+          "Bucket": bucketName,
+          "Key": `profile-pictures/${uuidv4()}.jpg`,
+          "Body": req.file.buffer,
+          "ContentType": 'image/jpeg',
+        };
 
               try{
                 const command = new PutObjectCommand(uploadS3);
@@ -176,10 +179,9 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
                   };
                 }
                 catch(error){res.render('register',{'error2':true});}   
-                res.redirect('/home');
+                res.redirect('/');
               }
               catch(error){
-                console.log(error)
                 res.render('register',{'error3':true});
               }
           }
@@ -248,7 +250,7 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
 
   if(req.file){
       uploadS3profile = {
-        "Bucket": 'web-otop',
+        "Bucket": bucketName,
         "Key": `profile-pictures/${uuidv4()}.jpg`,
         "Body": req.file.buffer,
         "ContentType": 'image/jpeg',
@@ -259,7 +261,7 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
       const command = new PutObjectCommand(uploadS3profile);
       await s3.send(command);
 
-      const s3Url = `https://otop-test.s3.amazonaws.com/${uploadS3profile.Key}`;
+      // const s3Url = `https://otop-test.s3.amazonaws.com/${uploadS3profile.Key}`;
     
       
       const updatePic = {
@@ -269,7 +271,7 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
         },
         UpdateExpression: 'SET profile_pic = :val1, username = :val2, address = :val3, password = :val4, firstName = :val5, lastName = :val6',
         ExpressionAttributeValues: {
-          ':val1': s3Url,
+          ':val1': s3Url+uploadS3profile.Key,
           ':val2' : username,
           ':val3' : address,
           ':val4' : password,
@@ -333,14 +335,140 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
 })
 
 
-// Shop -----------------------------------------------------
-router.get("/myshop", (req, res) => {
-  if (Object.keys(cur_user).length === 0) {
-    res.redirect('/');
-  } else {
-    res.render('myshop', { 'cur_user': cur_user });
+// MyShop -----------------------------------------------------
+router.get("/myshop", async (req, res) => {
+  try {
+    if (!cur_user) {
+      console.log("User not authenticated");
+      return res.redirect("/"); 
+    }
+
+    const username = cur_user; 
+    console.log('username',username);
+
+    const query = {
+      TableName: "Product",
+      KeyConditionExpression: "userID = :username",
+      ExpressionAttributeValues: {
+        ":username": username,
+      },
+    };
+
+    const queryCommand = new QueryCommand(query);
+    const result = await dynamoDB.send(queryCommand);
+
+    const products = result.Items || [];
+    console.log('products',products);
+
+    res.render("myshop", { products, username });
+
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.render("myshop", { error: true });
   }
-})
+});
+
+
+// Myshop Delete Product -----------------------------------------------------
+router.post("/myshop/delete", async (req, res) => {
+  try {
+    if (!cur_user) {
+      console.log("User not authenticated");
+      return res.redirect("/");
+    }
+
+    const productIdsToDelete = req.body.productIds; // Use "productIds" instead of "productId"
+    console.log(productIdsToDelete);
+    for (let i = 0; i < productIdsToDelete.length; i++){
+      console.log(productIdsToDelete[i].split(','))
+      const data = productIdsToDelete[i].split(',')
+      const username = data[0];
+      const productId = data[1];
+      const picKey = data[2];
+      const parts = picKey.split('/');
+      const imageName = parts[parts.length- 1];
+      const s3Key = "product-pictures/" + imageName
+      const query = {
+        TableName: "Product",
+        Key: {
+          "userID": username,
+          "productID": productId
+         }
+      
+    }
+    const deleteCommand = new DeleteCommand(query);
+    const result = await dynamoDB.send(deleteCommand);
+
+    const input = {
+      "Bucket": bucketName,
+      "Key": s3Key
+    };
+    const command = new DeleteObjectCommand(input);
+    await s3.send(command);
+
+
+    };
+
+
+    // Perform your deletion logic here
+
+    // Assuming successful deletion, send a success response
+    return res.json({ message: "Success" });
+  } catch (error) {
+    console.error('Error deleting products:', error);
+    // Handle errors or send an error response
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// router.post("/myshop/delete", async (req, res) => {
+//   // try {
+//     if (!cur_user) {
+//       console.log("User not authenticated");
+//       // res.redirect("/"); // Adjust the login route as needed
+//       res.redirect("not");
+//     }
+
+//     const productIdsToDelete = req.body; // Use "productIds" instead of "productId"
+//     console.log(productIdsToDelete)
+
+//     return("Success");
+    
+
+  //   // Log the value of productIdsToDelete
+  //   console.log('productIdsToDelete:', productIdsToDelete);
+
+  //   // Ensure productIdsToDelete is an array
+  //   const productIdsArray = [].concat(productIdsToDelete);
+
+  //   for (const productIdToDelete of productIdsArray) {
+  //     console.log('Deleting product with ID:', productIdToDelete);
+      
+  //     // Split the productId into username and productID
+  //     const [userID, productID] = productIdToDelete.split(',');
+
+  //     console.log('Deleting product with userID and productID:', userID, productID);
+
+  //     const deleteParams = {
+  //       TableName: "Product",
+  //       Key: {
+  //         userID: { S: userID }, // Assuming userID is of type String
+  //         productID: { S: productID }, // Assuming productID is of type String
+  //       },
+  //     };
+
+  //     const deleteCommand = new DeleteCommand(deleteParams);
+  //     await dynamoDB.send(deleteCommand);
+
+  //     console.log('Product deleted successfully');
+  //   }
+
+  //   res.redirect("/myshop");
+  // } catch (error) {
+  //   console.error("Error deleting product:", error);
+  //   res.render("error", { error: true });
+  // }
+// });
 
 
 // Add Product -----------------------------------------------------

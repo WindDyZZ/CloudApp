@@ -8,13 +8,13 @@
 </head>
 <body>
      <div class="container">
-        <form action="myshop">
+        <form action="/add_product" method="post" enctype="multipart/form-data">
             <fieldset>
              <legend>Product Info:</legend>
              <label for="product_name">Product Name:</label>
              <input type="text"  name="product_name"><br><br>
              <label for="price">Price:</label>
-             <input type="text" id="price" name="price"><br><br>
+             <input type="number" id="price" name="price" min="0"><br><br>
              <label for="province">Province:</label>
              <input type="text" id="province" name="province"><br><br>
              <label for="product_image">Product Image:</label>
@@ -22,7 +22,7 @@
              <!-- <img id="imagePreview" src="" alt="Selected Image" style="max-width: 100%; max-height: 200px;"><br><br> -->
              <input type="submit" value="Submit">
             </fieldset>
-           </form>
+        </form>
      </div>
 </body>
 </html>
