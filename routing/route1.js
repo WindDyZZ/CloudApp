@@ -19,11 +19,9 @@ const {
   DynamoDBDocument, GetCommand, PutCommand, ScanCommand, UpdateCommand, QueryCommand, DeleteCommand
 } = require('@aws-sdk/lib-dynamodb');
 
-
-
-
 // DB Client
 const {
+  DynamoDBClient,
   DynamoDBClient,
 } = require('@aws-sdk/client-dynamodb');
 
@@ -46,6 +44,9 @@ const upload = multer({ storage: storage });
 let cur_user = '';
 let default_userPic = './img/userprofile.png';
 
+
+// Login -----------------------------------------------------
+router.get('/', (req, res) => {
 
 // Login -----------------------------------------------------
 router.get('/', (req, res) => {
@@ -93,6 +94,8 @@ router.post("/", async (req, res) => {
   } else {
     console.log('User not found in DynamoDB.');
     res.render('login', { 'wrong_pass': true });
+    console.log('User not found in DynamoDB.');
+    res.render('login', { 'wrong_pass': true });
   }
 });
 
@@ -108,8 +111,10 @@ router.post("/register", upload.single('profilePictureInput'), async (req, res) 
   const username = req.body.register_username.toLowerCase();
   const email = req.body.register_Email;
   const password = req.body.register_Password;
+  const password = req.body.register_Password;
   const fname = req.body.register_firstName;
   const lname = req.body.register_lastName;
+  const address = req.body.register_address;
   const address = req.body.register_address;
 
   const params_email = {
@@ -165,6 +170,9 @@ router.post("/register", upload.single('profilePictureInput'), async (req, res) 
                   },
                 };
 
+          try {
+            const putCommand = new PutCommand(input);
+            await dynamoDB.send(putCommand);
           try {
             const putCommand = new PutCommand(input);
             await dynamoDB.send(putCommand);
