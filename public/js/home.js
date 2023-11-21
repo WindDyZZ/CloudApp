@@ -11,22 +11,22 @@ async function redirectToCart(pid, email) {
             Key: {
                 email: email,
             },
-            // Use list_append to add the new item to the existing list
+            
             UpdateExpression: "set cart = list_append(cart, :pid)",
             ExpressionAttributeValues: {
-                ":pid": [pid], // Wrap pid in an array to make it a list
+                ":pid": [pid], 
             },
             ReturnValues: "ALL_NEW",
         });
 
         const response = await dynamoDB.send(command);
-        console.log(response.Attributes.cart); // Log the updated cart
-
-        // You can return the updated cart or any other information you need
+       
         return response.Attributes.cart;
+        // return false;
+
     } catch (error) {
         console.error('Error updating item in DynamoDB:', error);
-        throw error; // Throw the error so the caller can handle it
+        throw error; 
     }
 }
 
