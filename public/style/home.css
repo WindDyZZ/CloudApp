@@ -19,9 +19,6 @@
 }
 
 body {
-    position: absolute;
-    top: 0;
-    left: 0;
     display: block;
     flex: 1;
     flex-wrap: wrap;
@@ -31,7 +28,6 @@ body {
     background-size: 100%;
     height: auto !important;
     height: 100%;
-    width: 100%;
     margin: 0 auto;
     overflow-y: scroll;
     /* z-index: 999; */
