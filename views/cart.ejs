@@ -29,6 +29,8 @@
             </div>
         </div>
         <!-- product 1 -->
+
+        <% if(obj[0]=! ''){ %>
         <% 
             let totalPrice = 0; 
             for (let i = 0; i < obj.length; i++) { 
@@ -63,7 +65,7 @@
             </div>
             <% } %>
         <!-- End product 1 -->
-
+        <%}%>
         <div class="total-box">
             <h2> Total Price: <span> ฿<%= totalPrice %></span> </h2>
             <button class="checkout-btn">Checkout</button>

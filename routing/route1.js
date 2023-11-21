@@ -4,7 +4,7 @@ const router = express.Router();
 const bodyParser = require('body-parser');
 const AWS = require('aws-sdk');
 const {
-  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, QueryCommand
+  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, QueryCommand, BatchGetCommand
 } = require('@aws-sdk/lib-dynamodb');
 
 const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/client-s3");
@@ -30,6 +30,8 @@ let cur_user = '';
 router.get('/',(req,res)=>{
   res.render('login');
 })
+
+
 
 router.post("/", async (req, res) => {
   const username = req.body.login_username.toLowerCase();
@@ -59,7 +61,14 @@ router.post("/", async (req, res) => {
   if (data && data.Item) {
       console.log('Stored password:', data.Item.password);
       if (password === data.Item.password.toLowerCase()) {
-        cur_user = username;
+        cur_user = {
+          username: data.Item.email,
+          email: data.Item.username,
+          password: data.Item.password,
+          firstName: data.Item.firstName,
+          lastName: data.Item.lastName,
+          address: data.Item.address,
+        };
           res.redirect('/home');
       } else {
           res.render('login', { 'wrong_pass': true });
@@ -69,6 +78,7 @@ router.post("/", async (req, res) => {
       res.render('login', { 'wrong_pass': true });
   }
 });
+
 
 // Register
 router.get("/register", (req, res) => {
@@ -86,7 +96,7 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
   const params_email = {
       TableName: 'Users',
       Key: {
-          email: email,
+          'email': email,
       },
   };
 
@@ -113,7 +123,6 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
           if ( responseUsername.Count != 0) {
               res.render('register', { 'existed_username': true });
           } else {
-
 
               const uploadS3 = {
                 "Bucket": 'web-otop',
@@ -152,6 +161,7 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
                     firstName: fname,
                     lastName:  lname,
                     address:   address,
+                    profile_pic: s3Url,
                   };
                 }
                 catch(error){res.render('register',{'error2':true});}   
@@ -190,15 +200,6 @@ router.get("/home", async (req, res) => {
     Limit: 30,
   };
 
-  // const queryParam = {
-  //   TableName: "Users",
-  //   KeyConditionExpression: "email = :username",
-  //   ExpressionAttributeValues: {
-  //     ":username": username,
-  //   },
-  //   ProjectionExpression: "cart"
-  // };
-
   const command = new ScanCommand(scanParams);
 
   try {
@@ -236,63 +237,62 @@ router.get("/add_product", (req, res) => {
     res.render('add_product');
 })
 
+// _____________________________________________________ CART
 
 router.get("/cart", async (req, res) => {
   try {
-      const queryParam = {
-          TableName: 'Users',
-          KeyConditionExpression: 'email = :email',
-          ExpressionAttributeValues: {
-              ':email': cur_user.email,
+    const get_data = async () => {
+      const command = new GetCommand({
+          TableName: "Users",
+          Key: {
+              'email': cur_user.email,
           },
-          ProjectionExpression: 'cart',
-          Limit: 1
+      });
+
+      try {
+          const response = await dynamoDB.send(command);
+          return response;
+      } catch (error) {
+          console.error('Error retrieving item from DynamoDB:', error);
+          return null;
+      }
+  };
+
+  const responseUsername = await get_data();
+
+    if (responseUsername.Count != 0) {
+      const cartItems = responseUsername.Item.cart;
+
+      const scanParams = {
+        TableName: 'Product',
+        FilterExpression: 'productID = :productIDs',
+        ExpressionAttributeValues: {
+          ':productIDs': '1',
+        },
       };
 
-      // Create the QueryCommand
-      const queryCommand = new QueryCommand(queryParam);
+      const scanCommand = new ScanCommand(scanParams);
+      const response2 = await dynamoDB.send(scanCommand);
 
-      // Now you can use 'dynamoDB.send' to send the query command
-      const response = await dynamoDB.send(queryCommand);
-      console.log(response.Items);
-
-      let obj = [];
-
-      // Check if 'cart' attribute exists in the response
-      if (response.Items.length > 0 && response.Items[0].cart) {
-          // Loop through each item in the 'cart'
-          for (const item of response.Items[0].cart) {
-              const queryParam2 = {
-                  TableName: 'Product',
-                  KeyConditionExpression: 'productID = :pid',
-                  ExpressionAttributeValues: {
-                      ':pid': item,
-                  },
-                  Limit: 1
-              };
-
-              const queryCommand2 = new QueryCommand(queryParam2);
-
-              try {
-                  const response2 = await dynamoDB.send(queryCommand2);
-                  console.log(response2.Items);
-
-                  // Push the item to 'obj' array
-                  obj.push(response2.Items);
-              } catch (error) {
-                  console.error('Error querying the Product table:', error);
-                  res.redirect('/error');
-              }
-          }
+      // Check for the presence of 'Items' property in response2
+      if (response2.Items) {
+        // Additional logic to handle the retrieved items
+        res.render('cart', { 'cur_user': cur_user, item: response2.Items });
+      } else {
+        console.error('Error querying the Product table. No Items property in the response.');
+        res.redirect('/error');
       }
-      
-
-      res.render('cart', { 'obj': obj });
-  } catch (error) {
-      console.error('Error querying the Users table:', error);
+    } else {
+      console.error('Error querying the Users table. No cart property in the response.');
       res.redirect('/error');
+    }
+  } catch (error) {
+    console.error('Error in the /cart endpoint:', error);
+    res.status(500).send('Internal Server Error');
   }
 });
+
+
 
 
 
@@ -378,5 +378,9 @@ router.post('/addToCart', async (req, res) => {
       res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
+
+router.get('/error', (req,res)=> {
+  res.render('error');
+})
 
 module.exports = router
