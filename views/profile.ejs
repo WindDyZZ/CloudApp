@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title> OTOP_Home </title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style/profile_shop.css">
+
+
 </head>
+
 <body>
     <div class="container">
         <div class="top-banner"></div>
@@ -15,12 +19,17 @@
                 <div class="cur-page"> > Profile </div>
                 <div class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="25" height="45" viewBox="0 0 448 512">
-                        <style> svg{fill:#741D14} </style>
-                        <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/>
+                        <style>
+                            svg {
+                                fill: #741D14
+                            }
+                        </style>
+                        <path
+                            d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z" />
                     </svg>
                 </div>
-            </div> 
-            
+            </div>
+
         </div>
         <div class="content">
             <div class="left-bar">
@@ -32,42 +41,67 @@
             </div>
 
             <div class="vl"></div>
-            
+
             <div class="option-content">
-                <div class="option-name option-same"><p>My Profile</p></div>
-                <hr>
-                <div class="profile-img">
-                    <img src="./img/userprofile.png" alt="user-profile">
-                    <input type="button" value="Select Image">
+                <div class="option-name option-same">
+                    <p>My Profile</p>
                 </div>
+                <hr>
+                <form action="/profile" method="post" enctype="multipart/form-data" style="margin: 0px;">
+                    <div class="profile-img">
+                        <img src="<%= profile_image %>" alt="user-profile">
+                        <input type="file" name="profilePicUpdate" accept="image/*">
+                        <button id="btUpdatePic" type="submit">update user profile</button>
+                    </div>
+                <!-- </form> -->
+
                 <hr>
                 <div class="user-info">
-                    <form action="#">
-                        <div class="username">
-                            <label for="username"><%= cur_username.username %></label>
-                            <input type="text" name="username" value="Username" readonly>
-                            <a href="#">Change</a>
+                    <!-- <form action="/profile" method="post"> -->
+                        <div>
+                            <div class="user">
+                                <label>Username</label>
+                                <input type="text" name="username" value="<%= userData.username %>" />
+                            </div>
+
+                            <div class="user">
+                                <label>Email</label>
+                                <input type="text" name="email" value="<%= userData.email %>" readonly>
+                            </div>
+
+                            <div class="user">
+                                <label>Password</label>
+                                <input type="password" name="password" value="<%= userData.password %>">
+                            </div>
                         </div>
-                        <div class="user-email">
-                            <label for="user-email"><%= cur_username.email %></label>
-                            <input type="text" name="user-email" value="UserEmail" readonly>
-                            <a href="#">Change</a>
+
+                        <div>
+                            <div class="user">
+                                <label>Address</label>
+                                <input type="text" name="Address" value="<%= userData.address %>" />
+                            </div>
+
+                            <div class="user">
+                                <label>First Name</label>
+                                <input type="text" name="fname" value="<%= userData.firstName %>">
+                            </div>
+
+                            <div class="user">
+                                <label>Last Name</label>
+                                <input type="text" name="lname" value="<%= userData.lastName %>" />
+                            </div>
                         </div>
+
+                        <!-- <input name="updateProfile" type="submit" value="Save Changes"
+                            style="width:30%; align-items: center;height: auto;"> -->
                     </form>
-                    
                 </div>
+
             </div>
         </div>
-        <!-- <footer style="height: 100px; position: absolute;">
-            <img src="./img/Wave.png" alt="">
-        </footer> -->
-
-        <!-- <footer>
-            <img src="./img/Wave.png" alt="">
-        </footer>
-         -->
     </div>
-    
-    
+
+
 </body>
+
 </html>

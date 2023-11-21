@@ -8,14 +8,21 @@ const { v4: uuidv4 } = require('uuid');
 const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/client-s3");
 
 // Lib DB
+const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
+const { S3Client, ListBucketsCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+
+// Lib DB
 const {
-  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, QueryCommand, BatchGetCommand
+  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
 
 
 // DB Client
+
+// DB Client
 const {
-  DynamoDBClient, 
+  DynamoDBClient,
 } = require('@aws-sdk/client-dynamodb');
 
 // DB configure
@@ -34,9 +41,12 @@ const upload = multer({ storage: storage });
 
 // Assign global var username
 let cur_user = '';
+let cur_userObj = {};
+let default_userPic = './img/userprofile.png';
+
 
 // Login -----------------------------------------------------
-router.get('/',(req,res)=>{
+router.get('/', (req, res) => {
   res.render('login');
 })
 
@@ -45,20 +55,20 @@ router.post("/", async (req, res) => {
   const password = req.body.login_password;
 
   const get_data = async () => {
-      const command = new GetCommand({
-          TableName: "Users",
-          Key: {
-              'email': username,
-          },
-      });
+    const command = new GetCommand({
+      TableName: "user",
+      Key: {
+        'email': username,
+      },
+    });
 
-      try {
-          const response = await dynamoDB.send(command);
-          return response;
-      } catch (error) {
-          console.error('Error retrieving item from DynamoDB:', error);
-          return null;
-      }
+    try {
+      const response = await dynamoDB.send(command);
+      return response;
+    } catch (error) {
+      console.error('Error retrieving item from DynamoDB:', error);
+      return null;
+    }
   };
 
   const data = await get_data();
@@ -73,21 +83,24 @@ router.post("/", async (req, res) => {
           firstName: data.Item.firstName,
           lastName: data.Item.lastName,
           address: data.Item.address,
+          profile_pic: data.Item.profile_pic,
         };
           res.redirect('/home');
       } else {
           res.render('login', { 'wrong_pass': true });
       }
   } else {
-      console.log('User not found in DynamoDB.');
-      res.render('login', { 'wrong_pass': true });
+    console.log('User not found in DynamoDB.');
+    res.render('login', { 'wrong_pass': true });
   }
 });
 
 
-// Register
+
+// Register -----------------------------------------------------
+
 router.get("/register", (req, res) => {
-    res.render('register');
+  res.render('register');
 })
 
 router.post("/register",upload.single('profilePictureInput'), async (req, res) => {
@@ -108,26 +121,24 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
   const command_email = new GetCommand(params_email);
 
   try {
-      const responseEmail = await dynamoDB.send(command_email);
-      console.log("Send");
+    const responseEmail = await dynamoDB.send(command_email);
 
-      if (responseEmail && responseEmail.Item) {
-          res.render('register', { 'existed_email': true });
-      } else {
-          const params_username = {
-            TableName: 'Users',
-            FilterExpression: '#username =  :u' ,
-            ExpressionAttributeNames:{'#username' : 'username'},
-            ExpressionAttributeValues: {':u' : username}
-          };
+    if (responseEmail && responseEmail.Item) {
+      res.render('register', { 'existed_email': true });
+    } else {
+      const params_username = {
+        TableName: 'user',
+        FilterExpression: '#username =  :u',
+        ExpressionAttributeNames: { '#username': 'username' },
+        ExpressionAttributeValues: { ':u': username }
+      };
 
           const command_username = new ScanCommand(params_username);
           const responseUsername = await dynamoDB.send(command_username);
-          console.log("Send2");
 
-          if ( responseUsername.Count != 0) {
-              res.render('register', { 'existed_username': true });
-          } else {
+      if (responseUsername.Count != 0) {
+        res.render('register', { 'existed_username': true });
+      } else {
 
               const uploadS3 = {
                 "Bucket": 'web-otop',
@@ -139,8 +150,6 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
               try{
                 const command = new PutObjectCommand(uploadS3);
                 const uploadResponse = await s3.send(command);
-                // const uploadResponse = await s3.send(new PutCommand(uploadS3));
-                // const s3Url = `https://${params.Bucket}.s3.${s3.config.region}.amazonaws.com/${params.Key}`;
                 const s3Url = `https://web-otop.s3.amazonaws.com/${uploadS3.Key}`;
                 const input = {
                   TableName: "Users",
@@ -155,9 +164,9 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
                   },
                 };
 
-                try{
-                  const putCommand = new PutCommand(input);
-                  await dynamoDB.send(putCommand);
+          try {
+            const putCommand = new PutCommand(input);
+            await dynamoDB.send(putCommand);
 
                   cur_user = {
                     username:  username,
@@ -166,7 +175,6 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
                     firstName: fname,
                     lastName:  lname,
                     address:   address,
-                    profile_pic: s3Url,
                   };
                 }
                 catch(error){res.render('register',{'error2':true});}   
@@ -179,19 +187,22 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
           }
       }
   } catch (error) {
-      console.error('Error getting item from DynamoDB:', error);
-      res.render('register', { 'error1': true });
+    console.error('Error getting item from DynamoDB:', error);
+    res.render('register', { 'error1': true });
   }
 
 });
 
+// Index -----------------------------------------------------
 
 router.get("/index", (req, res) => {
-    const name = "Win";
-    res.render('index.ejs', { name: name });
+  const name = "Win";
+  res.render('index.ejs', { name: name });
 })
 
-router.get("/home", async (req, res) => {
+// Home -----------------------------------------------------
+
+router.get("/home", (req, res) => {
 
   if (Object.keys(cur_user).length === 0) {
     res.redirect('/');
@@ -222,27 +233,131 @@ router.get("/home", async (req, res) => {
   }
 });
 
+
+// Profile -----------------------------------------------------
 router.get("/profile", (req, res) => {
   if (Object.keys(cur_user).length === 0) {
     res.redirect('/');
-} else {
-    res.render('profile', {'cur_user': cur_user });
-}
+  } else {
+    if (cur_user.profile_pic) {
+      default_userPic = cur_user.profile_pic;
+
+    }
+    res.render('profile', { 'profile_image': default_userPic, 'userData': cur_user});
+  }
 })
 
+router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
+  const username = req.body.username.toLowerCase();
+  // const email = req.body.email; //email is key may be cannot update?
+  const password = req.body.password;
+  const fname = req.body.fname;
+  const lname = req.body.lname;
+  const address = req.body.Address;
+
+  if(req.file){
+      uploadS3profile = {
+        "Bucket": 'web-otop',
+        "Key": `profile-pictures/${uuidv4()}.jpg`,
+        "Body": req.file.buffer,
+        "ContentType": 'image/jpeg',
+      };
+    
+
+    try {
+      const command = new PutObjectCommand(uploadS3profile);
+      await s3.send(command);
+
+      const s3Url = `https://otop-test.s3.amazonaws.com/${uploadS3profile.Key}`;
+    
+      
+      const updatePic = {
+        TableName: 'Users',
+        Key: {
+          'email': cur_user.email,
+        },
+        UpdateExpression: 'SET profile_pic = :val1, username = :val2, address = :val3, password = :val4, firstName = :val5, lastName = :val6',
+        ExpressionAttributeValues: {
+          ':val1': s3Url,
+          ':val2' : username,
+          ':val3' : address,
+          ':val4' : password,
+          ':val5' : fname,
+          ':val6' : lname,
+        },
+        ReturnValues: 'ALL_NEW'
+      }
+
+      try {
+        const result = new UpdateCommand(updatePic);
+        await dynamoDB.send(result)
+          .then((response) => {
+            cur_user = response.Attributes;
+            
+            res.redirect('/profile');
+          })
+          .catch((error) => {
+            console.log("Error updating the user pic");
+          })
+      } catch (error) { console.log('update dynamo error'); }
+    } catch (error) { console.log("Error Sending Command", error); }
+  }else if(!req.file){
+    console.log('no profile pic update');
+    try {
+      
+      const updateData = {
+        TableName: 'Users',
+        Key: {
+          'email': cur_user.email,
+        },
+        UpdateExpression: 'SET password = :val1, username = :val2, address = :val3, lastName = :val4, firstName = :val5',
+        ExpressionAttributeValues: {
+          ':val1': password,
+          ':val2' : username,
+          ':val3' : address,
+          ':val4' : lname,
+          ':val5' : fname,
+        },
+        ReturnValues: 'ALL_NEW'
+      }
+
+      try {
+        const result = new UpdateCommand(updateData);
+        await dynamoDB.send(result)
+          .then((response) => {
+            console.log("Successfully updated the user data \n", response);
+            cur_user = response.Attributes;
+            res.redirect('/profile');
+          })
+          .catch((error) => {
+            console.log("Error updating the user data", error);
+          })
+      } catch (error) { console.log('update dynamo error'); }
+    } catch (error) { console.log("Error Sending Command", error); }
+  }
+  else{
+    console.log(error);
+    res.redirect('/profile');
+  }
+})
+
+
+// Shop -----------------------------------------------------
 router.get("/myshop", (req, res) => {
   if (Object.keys(cur_user).length === 0) {
     res.redirect('/');
-} else {
-    res.render('myshop', {'cur_user': cur_user });
-}
+  } else {
+    res.render('myshop', { 'cur_user': cur_user });
+  }
 })
 
+
+// Add Product -----------------------------------------------------
 router.get("/add_product", (req, res) => {
-    res.render('add_product');
+  res.render('add_product');
 })
 
-// _____________________________________________________ CART
+// Cart -----------------------------------------------------
 
 router.get("/cart", async (req, res) => {
   try {
@@ -268,19 +383,7 @@ router.get("/cart", async (req, res) => {
     if (responseUsername.Count !== 0) {
       const cartItems = responseUsername.Item.cart;
 
-      // const expressionAttributeValues = cartItems.reduce((acc, value, index) => {
-      //   acc[`:value${index + 1}`] = value;
-      //   return acc;
-      // }, {});
       
-      // const expressionAttributeValuesString = Object.keys(expressionAttributeValues).map(key => `'${key}': ${JSON.stringify(expressionAttributeValues[key])}`).join(', ');
-
-      // const scanParams = {
-      //   TableName: 'Product',
-      //   Select: "ALL_ATTRIBUTES",
-      //   FilterExpression:  `productID IN (${Object.keys(expressionAttributeValues).join(', ')})`,
-      //   ExpressionAttributeValues: expressionAttributeValuesString,
-      // };
 
       const scanParams = {
         TableName: 'Product',
@@ -315,88 +418,92 @@ router.get("/cart", async (req, res) => {
 
 
 
-
+// History -----------------------------------------------------
 router.get("/history", (req, res) => {
-    const status = req.query.stt;
-    const user = {
-        firstName: 'Tim',
-        lastName: 'Cook',
-    }
+  const status = req.query.stt;
+  const user = {
+    firstName: 'Tim',
+    lastName: 'Cook',
+  }
 
-    if (status === 'purchased') {
-        var product = 
-        [{
-            name: 'Purchased Product ',
-            detail: 'product detail ...',
-            tp_cost: 40,
-            total_price: 200
-        },
-        {
-            name: 'Purchased Product 2 ',
-            detail: 'product detail ...',
-            tp_cost: 40,
-            total_price: 200
-        },
-    ]
-        
-    }else if (status === 'cancel'){
-        var product = [{
-            name: 'Canceled Product ',
-            detail: 'product detail ...',
-            tp_cost: 40,
-            total_price: 200
-        }]
-    }else{
-        var product = 
-        [{
-            name: 'Refund Product ',
-            detail: 'product detail ...',
-            tp_cost: 40,
-            total_price: 200
-        },
-        {
-            name: 'Refund Product 2 ',
-            detail: 'product detail ...',
-            tp_cost: 40,
-            total_price: 200
-        },
-    ]
-    }
-    res.render('history.ejs', {product:product})
+  if (status === 'purchased') {
+    var product =
+      [{
+        name: 'Purchased Product ',
+        detail: 'product detail ...',
+        tp_cost: 40,
+        total_price: 200
+      },
+      {
+        name: 'Purchased Product 2 ',
+        detail: 'product detail ...',
+        tp_cost: 40,
+        total_price: 200
+      },
+      ]
+
+  } else if (status === 'cancel') {
+    var product = [{
+      name: 'Canceled Product ',
+      detail: 'product detail ...',
+      tp_cost: 40,
+      total_price: 200
+    }]
+  } else {
+    var product =
+      [{
+        name: 'Refund Product ',
+        detail: 'product detail ...',
+        tp_cost: 40,
+        total_price: 200
+      },
+      {
+        name: 'Refund Product 2 ',
+        detail: 'product detail ...',
+        tp_cost: 40,
+        total_price: 200
+      },
+      ]
+  }
+  res.render('history.ejs', { product: product })
 })
 
-router.get('/logout', (req,res)=>{
-  cur_username = '';
+
+// Logout -----------------------------------------------------
+router.get('/logout', (req, res) => {
+  cur_user = '';
+  cur_userObj = {};
+  default_userPic = './img/userprofile.png';
   res.redirect('/');
 })
 
-router.post('/addToCart', async (req, res) => {
-  const { productId } = req.query;
+// router.post('/addToCart', async (req, res) => {
+//   const { productId } = req.query;
 
-  // Use the AWS SDK to update the DynamoDB item
-  const command = new UpdateCommand({
-      TableName: 'Users',
-      Key: {
-          // Define your key attributes
-          // For example, email as the partition key
-          email: cur_user.email,
-      },
-      UpdateExpression: 'SET cart = list_append(if_not_exists(cart, :emptyList), :productId)',
-      ExpressionAttributeValues: {
-          ':productId': { SS: [productId] },
-          ':emptyList': { SS: [] },
-      },
-      ReturnValues: 'ALL_NEW',
-  });
+//   // Use the AWS SDK to update the DynamoDB item
+//   const command = new UpdateCommand({
+//       TableName: 'Users',
+//       Key: {
+//           // Define your key attributes
+//           // For example, email as the partition key
+//           email: cur_user.email,
+//       },
+//       UpdateExpression: 'SET cart = list_append(if_not_exists(cart, :emptyList), :productId)',
+//       ExpressionAttributeValues: {
+//           ':productId': { SS: [productId] },
+//           ':emptyList': { SS: [] },
+//       },
+//       ReturnValues: 'ALL_NEW',
+//   });
 
-  try {
-      const response = await dynamoDB.send(command);
-      res.json({ success: true, cart: response.Attributes.cart,cartCount: response.Attributes.cart.length });
-  } catch (error) {
-      console.error('Error updating item in DynamoDB:', error);
-      res.status(500).json({ success: false, error: 'Internal Server Error' });
-  }
-});
+//   try {
+//       const response = await dynamoDB.send(command);
+//       res.json({ success: true, cart: response.Attributes.cart,cartCount: response.Attributes.cart.length });
+//   } catch (error) {
+//       console.error('Error updating item in DynamoDB:', error);
+//       res.status(500).json({ success: false, error: 'Internal Server Error' });
+//   }
+// });
 
 router.get('/error', (req,res)=> {
   res.render('error');
