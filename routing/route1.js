@@ -339,7 +339,7 @@ router.get("/myshop", async (req, res) => {
       return res.redirect("/"); 
     }
 
-    const username = cur_user; 
+    const username = cur_user.username; 
     console.log('username',username);
 
     const query = {
