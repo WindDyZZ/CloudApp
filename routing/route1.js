@@ -47,9 +47,6 @@ let default_userPic = './img/userprofile.png';
 
 // Login -----------------------------------------------------
 router.get('/', (req, res) => {
-
-// Login -----------------------------------------------------
-router.get('/', (req, res) => {
   res.render('login');
 })
 
