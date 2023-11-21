@@ -584,7 +584,6 @@ router.get("/history", (req, res) => {
 // Logout -----------------------------------------------------
 router.get('/logout', (req, res) => {
   cur_user = '';
-  cur_userObj = {};
   default_userPic = './img/userprofile.png';
   res.redirect('/');
 })
