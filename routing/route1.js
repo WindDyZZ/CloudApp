@@ -10,18 +10,15 @@ const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/cli
 // Lib DB
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
-
-router.use(bodyParser.json())
-router.use(bodyParser.urlencoded({ extended: true }))
+const { S3Client, ListBucketsCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 // Lib DB
 const {
-  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, UpdateCommand, QueryCommand, DeleteCommand
+  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
 
 // DB Client
 const {
-  DynamoDBClient,
   DynamoDBClient,
 } = require('@aws-sdk/client-dynamodb');
 
@@ -174,6 +171,7 @@ router.post("/register", upload.single('profilePictureInput'), async (req, res) 
                     firstName: fname,
                     lastName:  lname,
                     address:   address,
+                    profile_pic: s3Url
                   };
                 }
                 catch(error){res.render('register',{'error2':true});}   
@@ -259,9 +257,9 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
       const command = new PutObjectCommand(uploadS3profile);
       await s3.send(command);
 
-      // const s3Url = `https://otop-test.s3.amazonaws.com/${uploadS3profile.Key}`;
+      const s3Url = `https://web-otop.s3.amazonaws.com/${uploadS3.Key}`;
     
-      
+      // console.log('current email: ',cur_userObj.email);
       const updatePic = {
         TableName: 'Users',
         Key: {
@@ -269,12 +267,12 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
         },
         UpdateExpression: 'SET profile_pic = :val1, username = :val2, address = :val3, password = :val4, firstName = :val5, lastName = :val6',
         ExpressionAttributeValues: {
-          ':val1': s3Url+uploadS3profile.Key,
-          ':val2' : username,
-          ':val3' : address,
-          ':val4' : password,
-          ':val5' : fname,
-          ':val6' : lname,
+          ':val1': s3Url,
+          ':val2': username,
+          ':val3': address,
+          ':val4': password,
+          ':val5': fname,
+          ':val6': lname,
         },
         ReturnValues: 'ALL_NEW'
       }
@@ -292,10 +290,10 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
           })
       } catch (error) { console.log('update dynamo error'); }
     } catch (error) { console.log("Error Sending Command", error); }
-  }else if(!req.file){
+  } else if (!req.file) {
     console.log('no profile pic update');
     try {
-      
+
       const updateData = {
         TableName: 'Users',
         Key: {
@@ -304,10 +302,10 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
         UpdateExpression: 'SET password = :val1, username = :val2, address = :val3, lastName = :val4, firstName = :val5',
         ExpressionAttributeValues: {
           ':val1': password,
-          ':val2' : username,
-          ':val3' : address,
-          ':val4' : lname,
-          ':val5' : fname,
+          ':val2': username,
+          ':val3': address,
+          ':val4': lname,
+          ':val5': fname,
         },
         ReturnValues: 'ALL_NEW'
       }
@@ -326,7 +324,7 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
       } catch (error) { console.log('update dynamo error'); }
     } catch (error) { console.log("Error Sending Command", error); }
   }
-  else{
+  else {
     console.log(error);
     res.redirect('/profile');
   }
@@ -468,6 +466,7 @@ router.post("/myshop/delete", async (req, res) => {
 router.get("/add_product", (req, res) => {
   res.render('add_product');
 })
+
 
 // Cart -----------------------------------------------------
 
