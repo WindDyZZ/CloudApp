@@ -34,9 +34,11 @@
                                 </svg>
                             </div>
                             
-                            <input type="file" id="profilePictureInput" style="display: none;" accept="image/*">
-                            <Button id="select-profile" onclick="document.getElementById('profilePictureInput').click(); return false;">Select Profile Picture</Button>
-                            
+                            <!-- <input type="file" id="profilePictureInput" style="display: none;" accept="image/*">
+                            <Button id="select-profile" onclick="document.getElementById('profilePictureInput').click(); return false;">Select Profile Picture</Button> -->
+                            <label for="profilePictureInput"><Button id="select-profile" onclick="document.getElementById('profilePictureInput').click(); return false;">Select Profile Picture</Button></label>
+                            <input type="file" id="profilePictureInput" style="display: none;" accept="image/*" name="profilePictureInput">
+                        
                         </div>
 
                         <div id="register-middle">
