@@ -3,14 +3,13 @@ const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const AWS = require('aws-sdk');
-const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
-const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/client-s3");
+const multer = require('multer');
 
-// Lib DB
-const { v4: uuidv4 } = require('uuid');
-const multer = require('multer');
-const { S3Client, ListBucketsCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+// Router configure
+router.use(bodyParser.json())
+router.use(bodyParser.urlencoded({extended:false}));
+
 
 // Lib DB
 const {
@@ -27,11 +26,12 @@ const client = new DynamoDBClient({region:'us-east-1'});
 const dynamoDB = DynamoDBDocument.from(client);
 
 // AWS S3 configuration
-const s3 = new S3Client({region:'us-east-1'})
+const { S3Client, ListBucketsCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+const s3 = new S3Client({region:'us-east-1'});
 
-// Router configure
-router.use(bodyParser.urlencoded({extended:false}));
-const bucketName = "web-otop"
+
+
+const bucketName = "web-otop";
 
 // Multer configuration
 const storage = multer.memoryStorage();
@@ -124,7 +124,7 @@ router.post("/register", upload.single('profilePictureInput'), async (req, res) 
     } else {
       const params_username = {
         TableName: 'Users',
-        FilterExpression: '#username =  :u',
+        FilterExpression: 'username =  :u',
         ExpressionAttributeNames: { '#username': 'username' },
         ExpressionAttributeValues: { ':u': username }
       };
@@ -356,7 +356,7 @@ router.get("/myshop", async (req, res) => {
     const products = result.Items || [];
     console.log('products',products);
 
-    res.render("myshop", { products, username });
+    res.render("myshop", { products: products, username:username });
 
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -576,7 +576,7 @@ router.get("/history", (req, res) => {
       },
       ]
   }
-  res.render('history.ejs', { product: product })
+  res.render('history.ejs', { products: product })
 })
 
 

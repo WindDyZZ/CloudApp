@@ -46,11 +46,11 @@
             <div class="col" style="display: inline-block;">
                 <div class="ctn">
                     <a  class="add-btn" href="/add_cart?pid=<%= item.productID %>"><i class="fas fa-cart-plus"></i></a>
-                    <div style="height: 140px; overflow: hidden;"><img class="home-pic" src="<%= item.product_image %>" alt="S3 Pic"  /></div>
+                    <div style="height: 140px; overflow: hidden;"><img class="home-pic" src="<%= item.image %>" alt="S3 Pic"  /></div>
                 </div>
                 <!-- text box -->
                 <div class="card-price">
-                    <p><span class="name"><%= item.product_name.charAt(0).toUpperCase() + item.product_name.slice(1)  %></span><span class="price"><%= item.price %>฿</span></p>
+                    <p><span class="name"><%= item.product_name.charAt(0).toUpperCase() + item.product_name.slice(1)  %> &ensp; </span><span class="price"><%= item.price %>฿</span></p>
                 </div>
             </div>
             <% }) %>                    
