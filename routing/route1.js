@@ -6,15 +6,15 @@ const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const { S3Client, ListBucketsCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
-
+const { DynamoDBSet } = require('@aws-sdk/util-dynamodb');
 // Lib DB
 const {
-  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, UpdateCommand
+  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, UpdateCommand, 
 } = require('@aws-sdk/lib-dynamodb');
 
 // DB Client
 const {
-  DynamoDBClient,
+  DynamoDBClient, UpdateItemCommand
 } = require('@aws-sdk/client-dynamodb');
 
 // DB configure
@@ -175,7 +175,7 @@ router.post("/register", upload.single('profilePicUpload'), async (req, res) => 
             };
           }
           catch (error) { res.render('register', { 'error2': true }); }
-          res.redirect('/login');
+          res.redirect('/');
         }
         catch (error) {
           res.render('register', { 'error3': true });
@@ -198,42 +198,45 @@ router.get("/index", (req, res) => {
 
 // Home -----------------------------------------------------
 
-router.get("/home", (req, res) => {
+
+router.get("/home", async (req, res) => {
 
   if (Object.keys(cur_user).length === 0) {
     res.redirect('/');
-  } else {
-    res.render('home', { 'cur_user': cur_user });
   }
-  // const username = cur_username;
 
-  // // Fetch user data from DynamoDB using the username
-  // const getUserData = async (username) => {
-  //     const command = new GetCommand({
-  //         TableName: "Users",
-  //         Key: {
-  //             'email': username,
-  //         },
-  //     });
+  const limit = 8;
 
-  //     try {
-  //         const response = await dynamoDB.send(command);
-  //         return response.Item; // Return the user data
-  //     } catch (error) {
-  //         console.error('Error retrieving user data from DynamoDB:', error);
-  //         return null;
-  //     }
+  const scanParams = {
+    TableName: 'product',
+    Limit: 30,
+  };
+
+  // const queryParam = {
+  //   TableName: "Users",
+  //   KeyConditionExpression: "email = :username",
+  //   ExpressionAttributeValues: {
+  //     ":username": username,
+  //   },
+  //   ProjectionExpression: "cart"
   // };
 
-  // getUserData(username)
-  //     .then(userData => {
-  //         res.render('home.ejs', { 'username': cur_username, 'Item': userData });
-  //     })
-  //     .catch(error => {
-  //         console.error('Error fetching user data:', error);
-  //         res.render('home.ejs', { 'username': cur_username, 'Item': null });
-  //     });
+  const command = new ScanCommand(scanParams);
 
+  try {
+    const response = await dynamoDB.send(command);
+
+    if (response.Items.length > 0) {
+      product_data = response.Items;
+      // console.log(product_data);
+      const plus = response.Items.length % limit !== 0;
+      res.render('home', { 'cur_user': cur_user, 'limit': limit, 'product_data': product_data, 'plus': plus });
+    } else {
+      return res.render('home', { 'cur_user': cur_user, 'limit': limit, 'product_data': product_data, 'plus': false });
+    }
+  } catch (error) {
+    res.redirect('/error');
+  }
 });
 
 
@@ -261,14 +264,14 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
   const lname = req.body.lname;
   const address = req.body.Address;
 
-  if(req.file){
-      uploadS3profile = {
-        "Bucket": 'otop-test',
-        "Key": `profile-pictures/${uuidv4()}.jpg`,
-        "Body": req.file.buffer,
-        "ContentType": 'image/jpeg',
-      };
-    
+  if (req.file) {
+    let uploadS3profile = {
+      "Bucket": 'otop-test',
+      "Key": `profile-pictures/${uuidv4()}.jpg`,
+      "Body": req.file.buffer,
+      "ContentType": 'image/jpeg',
+    };
+
 
     try {
       const command = new PutObjectCommand(uploadS3profile);
@@ -276,7 +279,7 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
       console.log('send --> PutObjectCommand(uploadS3profile)');
 
       const s3Url = `https://otop-test.s3.amazonaws.com/${uploadS3profile.Key}`;
-    
+
       // console.log('current email: ',cur_userObj.email);
       const updatePic = {
         TableName: 'user',
@@ -286,11 +289,11 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
         UpdateExpression: 'SET profile_pic = :val1, username = :val2, address = :val3, password = :val4, firstName = :val5, lastName = :val6',
         ExpressionAttributeValues: {
           ':val1': s3Url,
-          ':val2' : username,
-          ':val3' : address,
-          ':val4' : password,
-          ':val5' : fname,
-          ':val6' : lname,
+          ':val2': username,
+          ':val3': address,
+          ':val4': password,
+          ':val5': fname,
+          ':val6': lname,
         },
         ReturnValues: 'ALL_NEW'
       }
@@ -310,10 +313,10 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
           })
       } catch (error) { console.log('update dynamo error'); }
     } catch (error) { console.log("Error Sending Command", error); }
-  }else if(!req.file){
+  } else if (!req.file) {
     console.log('no profile pic update');
     try {
-      
+
       const updateData = {
         TableName: 'user',
         Key: {
@@ -322,10 +325,10 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
         UpdateExpression: 'SET password = :val1, username = :val2, address = :val3, lastName = :val4, firstName = :val5',
         ExpressionAttributeValues: {
           ':val1': password,
-          ':val2' : username,
-          ':val3' : address,
-          ':val4' : lname,
-          ':val5' : fname,
+          ':val2': username,
+          ':val3': address,
+          ':val4': lname,
+          ':val5': fname,
         },
         ReturnValues: 'ALL_NEW'
       }
@@ -344,7 +347,7 @@ router.post("/profile", upload.single('profilePicUpdate'), async (req, res) => {
       } catch (error) { console.log('update dynamo error'); }
     } catch (error) { console.log("Error Sending Command", error); }
   }
-  else{
+  else {
     console.log(error);
     res.redirect('/profile');
   }
@@ -360,10 +363,41 @@ router.get("/myshop", (req, res) => {
   }
 })
 
+// Add cart -----------------------------------------------------
+router.get("/add_cart", async (req, res) => {
+  const productToAdd = req.query.pid;
+  console.log('productid: ',productToAdd);
 
-// Add Product -----------------------------------------------------
-router.get("/add_product", (req, res) => {
-  res.render('add_product');
+  // const updateExpression = 'SET cartList =:newValue';
+  // // const updateExpression = 'SET cartList = if_not_exists(cart, :emptyList) + :newValue';
+  // // const updateExpression = 'ADD cartList :newValue';
+
+  // const expressionAttributeValues = {
+  //   // 'emptyList' : [],
+  //   ':newValue' : [ { "S" : productToAdd } ]
+  // };
+
+  // const addProduct = {
+  //   TableName: 'user',
+  //   Key: {
+  //     'email': cur_userObj.email,
+  //   },
+  //   UpdateExpression: updateExpression,
+  //   ExpressionAttributeValues: expressionAttributeValues,
+  //   ReturnValues: 'UPDATED_NEW'
+  // }
+
+  // try {
+  //   const result = new UpdateItemCommand(addProduct);
+  //   await dynamoDB.send(result)
+  //     .then((response) => {
+  //       console.log('add cart success', response);
+  //       res.redirect('/home');
+  //     }).catch((error) => {
+  //       console.log('send cart fail', error);
+  //     })
+  // } catch (error) { console.log('update to cart fail'); }
+
 })
 
 
