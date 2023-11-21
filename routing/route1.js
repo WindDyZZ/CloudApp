@@ -3,22 +3,30 @@ const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const AWS = require('aws-sdk');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
+const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/client-s3");
+
+// Lib DB
 const {
   DynamoDBDocument, GetCommand, PutCommand, ScanCommand, QueryCommand, BatchGetCommand
 } = require('@aws-sdk/lib-dynamodb');
 
-const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/client-s3");
+
+// DB Client
 const {
   DynamoDBClient, 
 } = require('@aws-sdk/client-dynamodb');
-const { v4: uuidv4 } = require('uuid');
-const multer = require('multer');
+
+// DB configure
 const client = new DynamoDBClient({region:'us-east-1'});
 const dynamoDB = DynamoDBDocument.from(client);
-router.use(bodyParser.urlencoded({extended:false}));
 
-
+// AWS S3 configuration
 const s3 = new S3Client({region:'us-east-1'})
+
+// Router configure
+router.use(bodyParser.urlencoded({extended:false}));
 
 // Multer configuration
 const storage = multer.memoryStorage();
@@ -27,17 +35,14 @@ const upload = multer({ storage: storage });
 // Assign global var username
 let cur_user = '';
 
+// Login -----------------------------------------------------
 router.get('/',(req,res)=>{
   res.render('login');
 })
 
-
-
 router.post("/", async (req, res) => {
   const username = req.body.login_username.toLowerCase();
   const password = req.body.login_password;
-
-  console.log('Entered username:', username);
 
   const get_data = async () => {
       const command = new GetCommand({
@@ -62,8 +67,8 @@ router.post("/", async (req, res) => {
       console.log('Stored password:', data.Item.password);
       if (password === data.Item.password.toLowerCase()) {
         cur_user = {
-          username: data.Item.email,
-          email: data.Item.username,
+          username: data.Item.username,
+          email: data.Item.email,
           password: data.Item.password,
           firstName: data.Item.firstName,
           lastName: data.Item.lastName,
@@ -260,24 +265,38 @@ router.get("/cart", async (req, res) => {
 
   const responseUsername = await get_data();
 
-    if (responseUsername.Count != 0) {
+    if (responseUsername.Count !== 0) {
       const cartItems = responseUsername.Item.cart;
+
+      // const expressionAttributeValues = cartItems.reduce((acc, value, index) => {
+      //   acc[`:value${index + 1}`] = value;
+      //   return acc;
+      // }, {});
+      
+      // const expressionAttributeValuesString = Object.keys(expressionAttributeValues).map(key => `'${key}': ${JSON.stringify(expressionAttributeValues[key])}`).join(', ');
+
+      // const scanParams = {
+      //   TableName: 'Product',
+      //   Select: "ALL_ATTRIBUTES",
+      //   FilterExpression:  `productID IN (${Object.keys(expressionAttributeValues).join(', ')})`,
+      //   ExpressionAttributeValues: expressionAttributeValuesString,
+      // };
 
       const scanParams = {
         TableName: 'Product',
-        FilterExpression: 'productID = :productIDs',
+        Select:"ALL_ATTRIBUTES",
+        FilterExpression: 'productID IN (:values1,:values2)',
         ExpressionAttributeValues: {
-          ':productIDs': '1',
+          ':values1': '1',
+          ':values2': '2',
         },
       };
 
       const scanCommand = new ScanCommand(scanParams);
       const response2 = await dynamoDB.send(scanCommand);
 
-      // Check for the presence of 'Items' property in response2
       if (response2.Items) {
-        // Additional logic to handle the retrieved items
-        res.render('cart', { 'cur_user': cur_user, item: response2.Items });
+        res.render('cart', { 'cur_user': cur_user, obj: response2.Items });
       } else {
         console.error('Error querying the Product table. No Items property in the response.');
         res.redirect('/error');

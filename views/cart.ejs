@@ -30,23 +30,23 @@
         </div>
         <!-- product 1 -->
 
-        <% if(obj[0]=! ''){ %>
-        <% 
-            let totalPrice = 0; 
-            for (let i = 0; i < obj.length; i++) { 
-                totalPrice += obj[i].price; 
-        %>
+        
+        <% let totalPrice = 0; %>
+        <% if(obj.length > 0){ %>
+            
+            <% obj.forEach((item, index) => { %>
+              <% totalPrice += +item.price; %>
             <div class="in-cart">            
                 <input class="checkbox" type="checkbox" id="items" name="items" value="#">
-                <img class="item-img" src="<%= Products[i].image %>" alt="">
+                <img class="item-img" src="<%= item.image %>" alt="">
                 <div class="item">
-                    <a href="#"><%= obj[i].product_name %></a>
+                    <a href="#"><%= item.product_name %></a>
                     <!-- <select class="custom-select" name="color" id="color">
                         <option value="large">Large</option>
                         <option value="medium">medium</option>
                         <option value="small">small</option>
                     </select> -->
-                    <p><span>฿<%= obj[i].price %></span></p>
+                    <p><span>฿<%= item.price %></span></p>
                 </div>
                 <div class="quantity">
                     <div class="trash">
@@ -63,9 +63,9 @@
                     </button>
                 </div>
             </div>
-            <% } %>
+            <% }) %>
         <!-- End product 1 -->
-        <%}%>
+        <% } %>
         <div class="total-box">
             <h2> Total Price: <span> ฿<%= totalPrice %></span> </h2>
             <button class="checkout-btn">Checkout</button>
