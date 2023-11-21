@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <link rel="stylesheet" href="/style/home.css">
+    
+    <!-- Latest compiled and minified CSS -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>OTOP_Home</title> 
+</head>
+
+<header>
+    <!-- <img class="col-12 pt-0" src="/img/top-banner.png" /> -->
+    <div class="top-banner"></div>
+    <div class="row col-12">
+        <div class="col-3" id="header_logo">
+            <div class="logo ">OTOP</div>
+        </div>
+        <div class="col-lg-6" id="div_search">
+            <input id="header_search" type="text" placeholder="Search here">
+        </div>
+        <nav class="col-3" id="header_nav">
+            <a href="cart"><i class="fas fa-shopping-cart"></i></a>
+            <span id="cartCount"></span>
+            <a href="history"><i class="fas fa-history"></i></a>
+            <a href="profile" id="profile_btn"><i class="fas fa-user"></i></a>
+        </nav>
+    </div>
+    <div class="email" id="email" style="display: none;"><%= cur_user.email  %></div>
+</header>
+
+<body> 
+    
+    
+    <div class="row col-12">
+        <div class="col-3 pl-0" id="province_img">
+            <img style="max-width: 100%;" src="https://otop-test.s3.amazonaws.com/image/Rectangle+26.png" />
+        </div>
+        <div class="col-lg-9 col-md-9 col-sm-12" id="product_grid">
+            <!-- <h1 class="head-province">AYUTTHAYA</h1> -->
+            <div class="col-12">
+            <% product_data.forEach(item => { %>
+            <div class="col" style="display: inline-block;">
+                <!-- picture -->
+                <div class="ctn">
+                    <!-- <button class="add-btn" onclick="addToCart('<%= item.productID %>')"> -->
+                    <!-- <button class="add-btn" onclick="addToCart('<%= item.userID %>','<%= item.productID %>')">
+                        <i class="fas fa-cart-plus"></i>
+                    </button> -->
+                    <a  class="add-btn" href="/add_cart?pid=<%= item.productID %>"><i class="fas fa-cart-plus"></i></a>
+                    <div style="height: 140px; overflow: hidden;"><img class="home-pic" src="<%= item.product_image %>" alt="S3 Pic"  /></div>
+                </div>
+                <!-- text box -->
+                <div class="card-price">
+                    <p><span class="name"><%= item.product_name.charAt(0).toUpperCase() + item.product_name.slice(1)  %></span><span class="price"><%= item.price %>฿</span></p>
+                </div>
+            </div>
+            <% }) %>                    
+
+            </div>
+        </div>
+    </div>
+    
+    <!-- <script src="/js/home.js"></script> -->
+</body>
+
+</html>
