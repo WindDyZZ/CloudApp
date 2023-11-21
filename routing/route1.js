@@ -229,12 +229,67 @@ router.get("/add_product", (req, res) => {
     res.render('add_product');
 })
 
-router.get("/cart", (req, res) => {
-    const Products = [
-        { product_name: "silk", image: "img/ex-product.png", price: 1000, description: "" },
-        { product_name: "silk", image: "img/ex-product.png", price: 1000, description: "" }
-    ];
+router.get("/cart", async (req, res) => {
+  try {
+    // Assuming cur_user contains the user information
+    if (!cur_user) {
+      console.log("User not authenticated");
+      return res.redirect("/");
+    }
+
+    const username = cur_user.email;
+
+    // Step 1: Query "Users" table to get the product IDs in the user's cart
+    const userQuery = {
+      TableName: "Users",
+      KeyConditionExpression: "email = :username",
+      ExpressionAttributeValues: {
+        ":username": username,
+      },
+    };
+
+    const userQueryCommand = new QueryCommand(userQuery);
+    const userQueryResult = await dynamoDB.send(userQueryCommand);
+
+    // Extract the cart attribute (assuming it's a string set)
+    const cartProductIds = userQueryResult.Items[0]?.cart?.values || [];
+
+    // Check if cartProductIds is an array
+    if (!Array.isArray(cartProductIds) || cartProductIds.length === 0) {
+      console.log("Cart is empty");
+      return res.render('cart.ejs', { emptyCart: true, Products: [] });
+    }
+
+    console.log("Cart Product IDs:", cartProductIds);
+
+    // Step 2: Use BatchGetCommand to retrieve details of each product in the cart
+    const batchGetParams = {
+      RequestItems: {
+        "Product": {
+          Keys: cartProductIds.map(productId => ({ productID: productId })),
+        },
+      },
+    };
+
+    const batchGetCommand = new BatchGetCommand(batchGetParams);
+    const batchGetResult = await dynamoDB.send(batchGetCommand);
+
+    console.log("Batch Get Result:", batchGetResult);
+
+    // Extract product details from the batchGetResult
+    const Products = batchGetResult.Responses.Product || [];
+
+    console.log("Products:", Products);
+
+    // Pass the product details to the cart.ejs template
     res.render('cart.ejs', { Products: Products });
+
+  } catch (error) {
+    console.error("Error fetching cart data:", error);
+
+    // If there's an error, pass an empty array to Products
+    res.render('cart.ejs', { Products: [] });
+  }
 });
 
 

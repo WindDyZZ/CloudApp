@@ -19,10 +19,13 @@
 }
 
 body {
+    display: block;
+    flex: 1;
     background-image: url(../img/Wave.png);
     background-position: center bottom;
     background-repeat: no-repeat;
     background-size: 100%;
+    height: auto !important;
     height: 100%;
     /* z-index: 999; */
 }

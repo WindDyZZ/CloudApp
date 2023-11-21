@@ -10,7 +10,7 @@ app.set('view engine', 'ejs');
 app.set('views', 'views');
 
 // Serve static files from the 'public' folder
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Define a route to render the 'home.ejs' file
 app.get('/', (req, res) => {
