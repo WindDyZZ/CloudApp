@@ -18,7 +18,7 @@ const {
 } = require('@aws-sdk/lib-dynamodb');
 
 
-// DB Client
+
 
 // DB Client
 const {
@@ -41,7 +41,6 @@ const upload = multer({ storage: storage });
 
 // Assign global var username
 let cur_user = '';
-let cur_userObj = {};
 let default_userPic = './img/userprofile.png';
 
 
@@ -56,7 +55,7 @@ router.post("/", async (req, res) => {
 
   const get_data = async () => {
     const command = new GetCommand({
-      TableName: "user",
+      TableName: "Users",
       Key: {
         'email': username,
       },
@@ -74,7 +73,6 @@ router.post("/", async (req, res) => {
   const data = await get_data();
 
   if (data && data.Item) {
-      console.log('Stored password:', data.Item.password);
       if (password === data.Item.password.toLowerCase()) {
         cur_user = {
           username: data.Item.username,
@@ -193,16 +191,9 @@ router.post("/register",upload.single('profilePictureInput'), async (req, res) =
 
 });
 
-// Index -----------------------------------------------------
-
-router.get("/index", (req, res) => {
-  const name = "Win";
-  res.render('index.ejs', { name: name });
-})
-
 // Home -----------------------------------------------------
 
-router.get("/home", (req, res) => {
+router.get("/home", async (req, res) => {
 
   if (Object.keys(cur_user).length === 0) {
     res.redirect('/');

@@ -27,17 +27,18 @@
             <a href="cart"><i class="fas fa-shopping-cart"></i></a>
             <span id="cartCount"></span>
             <a href="history"><i class="fas fa-history"></i></a>
-            <a href="profile"><i class="fas fa-user"></i></a>
+            <a href="profile" id="profile_btn"><i class="fas fa-user"></i></a>
         </nav>
     </div>
     <div class="email" id="email" style="display: none;"><%= cur_user.email  %></div>
 </header>
 
-<body style="min-height: 100%;"> 
+<body> 
+    
     
     <div class="row col-12">
         <div class="col-3 pl-0" id="province_img">
-            <img style="max-width: 100%;" src="/img/ex-left-img.png" />
+            <img style="max-width: 100%;" src="/img/Rectangle 26 (1).png" />
         </div>
         <div class="col-lg-9 col-md-9 col-sm-12" id="product_grid">
             <!-- <h1 class="head-province">AYUTTHAYA</h1> -->
@@ -46,11 +47,8 @@
             <div class="col" style="display: inline-block;">
                 <!-- picture -->
                 <div class="ctn">
-                    <!-- <button class="add-btn" onclick="addToCart('<%= item.productID %>')"> -->
-                    <button class="add-btn" onclick="addToCart('<%= item.productID %>')">
-                        <i class="fas fa-cart-plus"></i>
-                    </button>
-                    <img class="home-pic" src="<%= item.image %>" alt="S3 Pic" />
+                    <a  class="add-btn" href="/add_cart?pid=<%= item.productID %>"><i class="fas fa-cart-plus"></i></a>
+                    <div style="height: 140px; overflow: hidden;"><img class="home-pic" src="<%= item.image %>" alt="S3 Pic"  /></div>
                 </div>
                 <!-- text box -->
                 <div class="card-price">
@@ -63,8 +61,7 @@
         </div>
     </div>
     
-    <script src="/js/home.js"></script>
+    <!-- <script src="/js/home.js"></script> -->
 </body>
-
 
 </html>
