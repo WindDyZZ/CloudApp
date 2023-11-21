@@ -575,64 +575,178 @@ router.get("/add_cart", async (req, res) => {
 });
 
 // Cart -----------------------------------------------------
-router.get("/cart", (req, res) => {
-  const Products = [
-    { product_name: "silk", image: "img/ex-product.png", price: 1000, description: "" },
-    { product_name: "silk", image: "img/ex-product.png", price: 1000, description: "" }
-  ];
-  res.render('cart.ejs', { Products: Products });
+router.get("/cart", async (req, res) => {
+  try {
+    const get_data = async () => {
+      const command = new GetCommand({
+          TableName: "Users",
+          Key: {
+              'email': cur_user.email,
+          },
+      });
+
+      try {
+          const response = await dynamoDB.send(command);
+          return response;
+      } catch (error) {
+          console.error('Error retrieving item from DynamoDB:', error);
+          return null;
+      }
+  };
+
+  const responseUsername = await get_data();
+  console.log(responseUsername);
+
+    if (responseUsername.Count !== 0) {
+      const cartItems = responseUsername.Item.cart;
+
+      const scanParams = {
+        TableName: 'Product',
+        Select:"ALL_ATTRIBUTES",
+        FilterExpression: 'productID IN (:values1,:values2)',
+        ExpressionAttributeValues: {
+          ':values1': '1',
+          ':values2': '2',
+        },
+      };
+
+      const scanCommand = new ScanCommand(scanParams);
+      const response2 = await dynamoDB.send(scanCommand);
+
+      if (response2.Items) {
+        res.render('cart', { 'cur_user': cur_user, obj: response2.Items });
+      } else {
+        console.error('Error querying the Product table. No Items property in the response.');
+        res.redirect('/error');
+      }
+    } else {
+      console.error('Error querying the Users table. No cart property in the response.');
+      res.redirect('/error');
+    }
+  } catch (error) {
+    console.error('Error in the /cart endpoint:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-
 // History -----------------------------------------------------
-router.get("/history", (req, res) => {
+// router.get("/history", (req, res) => {
+//   const status = req.query.stt;
+//   const user = {
+//     firstName: 'Tim',
+//     lastName: 'Cook',
+//   }
+
+//   if (status === 'purchased') {
+//     var product =
+//       [{
+//         name: 'Purchased Product ',
+//         detail: 'product detail ...',
+//         tp_cost: 40,
+//         total_price: 200
+//       },
+//       {
+//         name: 'Purchased Product 2 ',
+//         detail: 'product detail ...',
+//         tp_cost: 40,
+//         total_price: 200
+//       },
+//       ]
+
+//   } else if (status === 'cancel') {
+//     var product = [{
+//       name: 'Canceled Product ',
+//       detail: 'product detail ...',
+//       tp_cost: 40,
+//       total_price: 200
+//     }]
+//   } else {
+//     var product =
+//       [{
+//         name: 'Refund Product ',
+//         detail: 'product detail ...',
+//         tp_cost: 40,
+//         total_price: 200
+//       },
+//       {
+//         name: 'Refund Product 2 ',
+//         detail: 'product detail ...',
+//         tp_cost: 40,
+//         total_price: 200
+//       },
+//       ]
+//   }
+//   res.render('history.ejs', { product: product })
+// })
+
+router.get("/history", async (req, res) => {
   const status = req.query.stt;
-  const user = {
-    firstName: 'Tim',
-    lastName: 'Cook',
-  }
 
-  if (status === 'purchased') {
-    var product =
-      [{
-        name: 'Purchased Product ',
-        detail: 'product detail ...',
-        tp_cost: 40,
-        total_price: 200
-      },
-      {
-        name: 'Purchased Product 2 ',
-        detail: 'product detail ...',
-        tp_cost: 40,
-        total_price: 200
-      },
-      ]
+  console.log("Status:", status);
+  console.log("current user is", cur_userObj.username);
 
-  } else if (status === 'cancel') {
-    var product = [{
-      name: 'Canceled Product ',
-      detail: 'product detail ...',
-      tp_cost: 40,
-      total_price: 200
-    }]
-  } else {
-    var product =
-      [{
-        name: 'Refund Product ',
-        detail: 'product detail ...',
-        tp_cost: 40,
-        total_price: 200
-      },
-      {
-        name: 'Refund Product 2 ',
-        detail: 'product detail ...',
-        tp_cost: 40,
-        total_price: 200
-      },
-      ]
+  try {
+      let params;
+
+      if (status === 'cancel' || status === 'purchased' || status === 'refund') {
+          params = {
+              TableName: 'Order',
+              FilterExpression: '#status = :status AND #userID = :userID',
+              ExpressionAttributeNames: {
+                  '#status': 'status',
+                  '#userID': 'userID',
+              },
+              ExpressionAttributeValues: {
+                  ':status': status,
+                  ':userID': cur_userObj.username,
+              },
+          };
+
+          console.log("status is click from button");
+      
+      } else if (status === undefined || status === 'all') {
+          params = {
+              TableName: 'Order',
+              FilterExpression: '#userID = :userID',
+              ExpressionAttributeNames: {
+                  '#userID': 'userID', 
+              },
+              ExpressionAttributeValues: {
+                  ':userID': cur_userObj.username,
+              },
+          };
+          console.log("status is undefined");
+
+      } else {
+          params = {
+              TableName: 'Order', 
+              FilterExpression: '#status = :status OR attribute_not_exists(#status)',
+              ExpressionAttributeNames: {
+                  '#status': 'status',
+                  '#userID': 'userID',
+              },
+              ExpressionAttributeValues: {
+                  ':status': status,
+                  ':userID': cur_userObj.username,
+              },
+          };
+          console.log("else");
+      }
+
+      console.log("DynamoDB my Query Params:", params);
+
+      const result = await dynamoDB.send(new ScanCommand(params));
+      //console.log("DynamoDB Result:", result);
+
+      const products = result.Items; 
+      console.log(products);
+
+      res.render('history.ejs', { products: products });
+  } catch (error) {
+      console.error("Error fetching data from DynamoDB:", error);
+      res.status(500).send("Internal Server Error");
   }
-  res.render('history.ejs', { product: product })
-})
+});
 
 
 // Logout -----------------------------------------------------
