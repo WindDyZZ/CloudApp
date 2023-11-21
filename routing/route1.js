@@ -4,7 +4,7 @@ const router = express.Router();
 const bodyParser = require('body-parser');
 const AWS = require('aws-sdk');
 const {
-  DynamoDBDocument, GetCommand, PutCommand, ScanCommand
+  DynamoDBDocument, GetCommand, PutCommand, ScanCommand, QueryCommand
 } = require('@aws-sdk/lib-dynamodb');
 
 const { S3Client, ListBucketsCommand , PutObjectCommand} = require("@aws-sdk/client-s3");
@@ -180,33 +180,40 @@ router.get("/home", async (req, res) => {
 
   if (Object.keys(cur_user).length === 0) {
     res.redirect('/');
-} 
-    const limit = 8;
-    let product_data = '';
+  } 
 
-    const scanParams = {
-        TableName: 'Product',
-        Limit: 30,
-      };
+  const limit = 8;
 
-      const command = new ScanCommand(scanParams);
 
-      try{
-        const response = await dynamoDB.send(command);
-        if(response.Items.length > 0){
-            product_data = response.Items;
-            const plus = response.Items.length % limit !== 0;
-            res.render('home', {'cur_user': cur_user,'limit':limit,'product_data':product_data, 'plus':plus });
-            // res.redirect('/');
-        }
-        else{
-            return res.render('home', { 'cur_user': cur_user, 'limit': limit, 'product_data': product_data, 'plus': false });
-        }
-      }
-      catch (error){
-        res.redirect('/error')
-      }
+  const scanParams = {
+    TableName: 'Product',
+    Limit: 30,
+  };
 
+  // const queryParam = {
+  //   TableName: "Users",
+  //   KeyConditionExpression: "email = :username",
+  //   ExpressionAttributeValues: {
+  //     ":username": username,
+  //   },
+  //   ProjectionExpression: "cart"
+  // };
+
+  const command = new ScanCommand(scanParams);
+
+  try {
+    const response = await dynamoDB.send(command);
+
+    if (response.Items.length > 0) {
+      product_data = response.Items;
+      const plus = response.Items.length % limit !== 0;
+      res.render('home', { 'cur_user': cur_user, 'limit': limit, 'product_data': product_data, 'plus': plus });
+    } else {
+      return res.render('home', { 'cur_user': cur_user, 'limit': limit, 'product_data': product_data, 'plus': false });
+    }
+  } catch (error) {
+    res.redirect('/error');
+  }
 });
 
 router.get("/profile", (req, res) => {
@@ -229,68 +236,117 @@ router.get("/add_product", (req, res) => {
     res.render('add_product');
 })
 
+// router.get("/cart", async (req, res) => {
+//   try {
+//     // Assuming cur_user contains the user information
+//     if (!cur_user) {
+//       console.log("User not authenticated");
+//       return res.redirect("/");
+//     }
+
+//     const username = cur_user.email;
+
+//     // Step 1: Query "Users" table to get the product IDs in the user's cart
+//     const userQuery = {
+//       TableName: "Users",
+//       KeyConditionExpression: "email = :username",
+//       ExpressionAttributeValues: {
+//         ":username": username,
+//       },
+//     };
+
+//     const userQueryCommand = new QueryCommand(userQuery);
+//     const userQueryResult = await dynamoDB.send(userQueryCommand);
+
+//     // Extract the cart attribute (assuming it's a string set)
+//     const cartProductIds = userQueryResult.Items[0]?.cart?.values || [];
+
+//     // Check if cartProductIds is an array
+//     if (!Array.isArray(cartProductIds) || cartProductIds.length === 0) {
+//       console.log("Cart is empty");
+//       return res.render('cart.ejs', { emptyCart: true, Products: [] });
+//     }
+
+//     console.log("Cart Product IDs:", cartProductIds);
+
+//     // Step 2: Use BatchGetCommand to retrieve details of each product in the cart
+//     const batchGetParams = {
+//       RequestItems: {
+//         "Product": {
+//           Keys: cartProductIds.map(productId => ({ productID: productId })),
+//         },
+//       },
+//     };
+
+//     const batchGetCommand = new BatchGetCommand(batchGetParams);
+//     const batchGetResult = await dynamoDB.send(batchGetCommand);
+
+//     console.log("Batch Get Result:", batchGetResult);
+
+//     // Extract product details from the batchGetResult
+//     const Products = batchGetResult.Responses.Product || [];
+
+//     console.log("Products:", Products);
+
+//     // Pass the product details to the cart.ejs template
+//     res.render('cart.ejs', { Products: Products });
+
+//   } catch (error) {
+//     console.error("Error fetching cart data:", error);
+
+//     // If there's an error, pass an empty array to Products
+//     res.render('cart.ejs', { Products: [] });
+//   }
+// });
+
+
 router.get("/cart", async (req, res) => {
-  try {
-    // Assuming cur_user contains the user information
-    if (!cur_user) {
-      console.log("User not authenticated");
-      return res.redirect("/");
-    }
+  const username = 'someUserEmail@example.com';
 
-    const username = cur_user.email;
-
-    // Step 1: Query "Users" table to get the product IDs in the user's cart
-    const userQuery = {
-      TableName: "Users",
-      KeyConditionExpression: "email = :username",
+  const queryParam = {
+      TableName: 'Users',  // Replace 'Product' with your actual table name
+      KeyConditionExpression: 'email = :email',
       ExpressionAttributeValues: {
-        ":username": username,
+          ':email': cur_user.email,  // Assuming 'email' is of type String
       },
-    };
+      ProjectionExpression: 'cart',
+      Limit: 1  // Specify the attributes you want to retrieve
+  };
 
-    const userQueryCommand = new QueryCommand(userQuery);
-    const userQueryResult = await dynamoDB.send(userQueryCommand);
+  // Create the QueryCommand
+  const queryCommand = new QueryCommand(queryParam);
 
-    // Extract the cart attribute (assuming it's a string set)
-    const cartProductIds = userQueryResult.Items[0]?.cart?.values || [];
+  // Now you can use 'dynamoDB.send' to send the query command
+  try {
+      const response = await dynamoDB.send(queryCommand);
+      console.log(response.Items);  // Access the retrieved items
+    let obj = new Array();
+      for(item in response.Items.cart){
+        const queryParam2 = {
+          TableName: 'Product',  // Replace 'Product' with your actual table name
+          KeyConditionExpression: 'productID = :pid',
+          ExpressionAttributeValues: {
+              ':pid': item,  // Assuming 'email' is of type String
+          },
+          Limit: 1
+        };
 
-    // Check if cartProductIds is an array
-    if (!Array.isArray(cartProductIds) || cartProductIds.length === 0) {
-      console.log("Cart is empty");
-      return res.render('cart.ejs', { emptyCart: true, Products: [] });
-    }
+        const queryCommand2 = new QueryCommand(queryParam2);
+        try{
+          const response = await dynamoDB.send(queryCommand);
+          obj.push(response.Items);
+        }
+        catch(error){
+          res.redirect('/error');
+        }
+      }
 
-    console.log("Cart Product IDs:", cartProductIds);
-
-    // Step 2: Use BatchGetCommand to retrieve details of each product in the cart
-    const batchGetParams = {
-      RequestItems: {
-        "Product": {
-          Keys: cartProductIds.map(productId => ({ productID: productId })),
-        },
-      },
-    };
-
-    const batchGetCommand = new BatchGetCommand(batchGetParams);
-    const batchGetResult = await dynamoDB.send(batchGetCommand);
-
-    console.log("Batch Get Result:", batchGetResult);
-
-    // Extract product details from the batchGetResult
-    const Products = batchGetResult.Responses.Product || [];
-
-    console.log("Products:", Products);
-
-    // Pass the product details to the cart.ejs template
-    res.render('cart.ejs', { Products: Products });
+      res.render('cart',{obj:obj})
 
   } catch (error) {
-    console.error("Error fetching cart data:", error);
-
-    // If there's an error, pass an empty array to Products
-    res.render('cart.ejs', { Products: [] });
+      console.error('Error querying the Product table:', error);
   }
-});
+})
 
 
 
@@ -348,5 +404,32 @@ router.get('/logout', (req,res)=>{
   res.redirect('/');
 })
 
+router.post('/addToCart', async (req, res) => {
+  const { productId } = req.query;
+
+  // Use the AWS SDK to update the DynamoDB item
+  const command = new UpdateCommand({
+      TableName: 'Users',
+      Key: {
+          // Define your key attributes
+          // For example, email as the partition key
+          email: cur_user.email,
+      },
+      UpdateExpression: 'SET cart = list_append(if_not_exists(cart, :emptyList), :productId)',
+      ExpressionAttributeValues: {
+          ':productId': { SS: [productId] },
+          ':emptyList': { SS: [] },
+      },
+      ReturnValues: 'ALL_NEW',
+  });
+
+  try {
+      const response = await dynamoDB.send(command);
+      res.json({ success: true, cart: response.Attributes.cart,cartCount: response.Attributes.cart.length });
+  } catch (error) {
+      console.error('Error updating item in DynamoDB:', error);
+      res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+});
 
 module.exports = router

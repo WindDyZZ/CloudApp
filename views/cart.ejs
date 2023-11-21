@@ -31,20 +31,20 @@
         <!-- product 1 -->
         <% 
             let totalPrice = 0; 
-            for (let i = 0; i < Products.length; i++) { 
-                totalPrice += Products[i].price; 
+            for (let i = 0; i < obj.length; i++) { 
+                totalPrice += obj[i].price; 
         %>
             <div class="in-cart">            
                 <input class="checkbox" type="checkbox" id="items" name="items" value="#">
                 <img class="item-img" src="<%= Products[i].image %>" alt="">
                 <div class="item">
-                    <a href="#"><%= Products[i].product_name %></a>
+                    <a href="#"><%= obj[i].product_name %></a>
                     <!-- <select class="custom-select" name="color" id="color">
                         <option value="large">Large</option>
                         <option value="medium">medium</option>
                         <option value="small">small</option>
                     </select> -->
-                    <p><span>฿<%= Products[i].price %></span></p>
+                    <p><span>฿<%= obj[i].price %></span></p>
                 </div>
                 <div class="quantity">
                     <div class="trash">
