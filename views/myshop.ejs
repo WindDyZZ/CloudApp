@@ -50,9 +50,9 @@
                 <hr>
                 <% for (let i = 0; i < products.length; i++) { %>  
                 <div class="in-cart">       
-                     
-                        <input class="checkbox" type="checkbox" id="<%= 'item' + i %>" name="items" value="<%= products[i].username + ',' + products[i].productID %>">
+                        <input class="checkbox" type="checkbox" id="<%= 'item' + i %>" name="items" value="<%= username + ',' + products[i].productID + ',' + products[i].product_image, %>">
                     <div class="item">
+                        <img width="150" height="150"  style="object-fit: cover; border-radius: 10px; margin-left: 10px; margin-right: 10px;" src=<%= products[i].product_image %>> 
                         <p class="item_name">
                             <a href="#"><%= products[i].product_name %></a>
                         </p>
@@ -64,44 +64,56 @@
                     <span><a href="#">Detail >>>></a></span>
                 </div>
                 <hr>
-                
+                <% } %>
             </div>
-            <% } %>
+           
         </div>
     </div>
-    
-    
-</body>
-<!-- <script>
-    async function handleDeleteClick() {
-    // Get all checked checkboxes
-    const checkboxes = document.querySelectorAll('.checkbox:checked');
-    
-    // Extract product IDs from the checked checkboxes
-    const selectedProductIds = Array.from(checkboxes).map(checkbox => checkbox.value);
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        function handleDeleteClick() {
+        // Get all checked checkboxes
+        const checkboxes = document.querySelectorAll('.checkbox:checked');
+        
+        // Extract product IDs from the checked checkboxes
+        const selectedProductIds = Array.from(checkboxes).map(checkbox => checkbox.value);
+        // Log the selectedProductIdselectedProductIds);
+        let formData = new FormData();
+        formData.append("productIds",selectedProductIds )
 
-    // Log the selectedProductIds
-    console.log('selectedProductIds:', selectedProductIds);
-
-    // Send a POST request to the server with the selected product IDs
-    const response = await fetch('/myshop/delete', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ productIds: selectedProductIds }), // Use "productIds" instead of "productId"
-    });
-
-    // Check if the request was successful
-    if (response.ok) {
-        // Redirect or update the UI as needed
-        window.location.href = '/myshop';
-    } else {
-        // Handle errors
-        console.error('Error deleting products');
+        // Send a POST request to the server with the selected product IDs
+        axios.post('/myshop/delete', { productIds: selectedProductIds },{
+    headers: {
+        'Content-Type': 'application/json'
     }
-}
+} ).then((response) => {
+    console.log(response);
+     window.location.href = '/myshop';
+    }).catch()
 
-</script> -->
+        // const response = fetch('/myshop/delete', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({ productIds: selectedProductIds }), // Use "productIds" instead of "productId"
+        // });
+
+        // // Check if the request was successful
+        // if (response.ok) {
+        //     // Redirect or update the UI as needed
+        //     window.location.href = '/myshop';
+        // } else {
+        //     // Handle errors
+        //     console.error('Error deleting products');
+        // }
+    }
+
+    
+    </script>
+    
+    </body>
+
+
 </html>
 
