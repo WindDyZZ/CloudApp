@@ -270,7 +270,7 @@
             }
 
             .in-cart {
-                display: inline-flex;
+                display: flex;
                 flex-direction: row;
                 width: 97%;
                 border-radius: 10px;
@@ -282,10 +282,12 @@
                     height: 100%;
                     text-decoration: none;
                     font-size: 20px;
+                    display: flex;
+                    width: 100%;
+                    align-items: center;
+                
 
                     .item_name {
-                        margin-bottom: auto; 
-                        margin-top: 0px;
                         text-decoration: none;
                         color: #741D14;
                         font-family: "Haas Grot Text R Web", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -331,5 +333,11 @@
         height: 150px;
         object-fit: cover;
         border-radius: 10px;
+     }
+
+     #item-name-price{
+        padding-right: 20px;
+        display: flex;
+        flex-direction: column;
      }
 
